@@ -83,6 +83,8 @@ Do every change through a branch and a pull request. Never edit files directly o
 ### 2a. Make sure your local copy is fresh
 
 ```bash
+git fetch --prune
+git --no-pager branch -a
 git checkout main
 git pull
 ```
