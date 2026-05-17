@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blindspot-summer-2026"
+version = "0.1.0"
+description = "Embedding-space poisoning and camera-level detection harness for multi-camera tracking research."
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

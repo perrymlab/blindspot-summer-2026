@@ -1,0 +1,222 @@
+From e9dafea0ad85f8bbfb6ad6e7626aa3e31a511285 Mon Sep 17 00:00:00 2001
+From: Blindspot Summer 2026 <blindspot@example.invalid>
+Date: Mon, 27 Apr 2026 13:38:49 -0500
+Subject: [PATCH] Add PRIME ReID poison and export hooks
+
+---
+ fast_reid/fast_reid_interfece.py | 74 ++++++++++++++++++++++++++++++--
+ tools/demo.py                    |  5 +++
+ tools/mc_demo.py                 |  5 +++
+ tracker/bot_sort.py              | 17 +++++++-
+ tracker/mc_bot_sort.py           | 17 +++++++-
+ 5 files changed, 111 insertions(+), 7 deletions(-)
+
+diff --git a/fast_reid/fast_reid_interfece.py b/fast_reid/fast_reid_interfece.py
+index 6c91ff0..aeaaca7 100644
+--- a/fast_reid/fast_reid_interfece.py
++++ b/fast_reid/fast_reid_interfece.py
+@@ -1,6 +1,8 @@
+ import cv2
++import csv
+ import numpy as np
+ import matplotlib.pyplot as plt
++import os
+ import torch
+ import torch.nn.functional as F
+ # from torch.backends import cudnn
+@@ -50,7 +52,16 @@ def preprocess(image, input_size):
+ 
+ 
+ class FastReIDInterface:
+-    def __init__(self, config_file, weights_path, device, batch_size=8):
++    def __init__(
++            self,
++            config_file,
++            weights_path,
++            device,
++            batch_size=8,
++            poison_cameras=None,
++            poison_epsilon=0.0,
++            poison_seed=7,
++            export_embeddings=None):
+         super(FastReIDInterface, self).__init__()
+         if device != 'cpu':
+             self.device = 'cuda'
+@@ -72,8 +83,20 @@ class FastReIDInterface:
+             self.model = self.model.eval()
+ 
+         self.pH, self.pW = self.cfg.INPUT.SIZE_TEST
+-
+-    def inference(self, image, detections):
++        self.poison_cameras = self._parse_poison_cameras(poison_cameras)
++        self.poison_epsilon = float(poison_epsilon)
++        self.poison_seed = int(poison_seed)
++        self.export_embeddings = export_embeddings
++        self._poison_direction = None
++        if self.export_embeddings:
++            export_dir = os.path.dirname(self.export_embeddings)
++            if export_dir:
++                os.makedirs(export_dir, exist_ok=True)
++            with open(self.export_embeddings, "w", newline="") as f:
++                writer = csv.writer(f)
++                writer.writerow(["camera", "frame", "detection_index", "x1", "y1", "x2", "y2", "embedding"])
++
++    def inference(self, image, detections, camera_id=None, frame_id=None):
+ 
+         if detections is None or np.size(detections) == 0:
+             return []
+@@ -147,5 +170,50 @@ class FastReIDInterface:
+ 
+             features = np.vstack((features, feat))
+ 
++        features = self._apply_prime_poison(features, camera_id)
++        self._export_prime_embeddings(features, detections, camera_id, frame_id)
+         return features
+ 
++    def _apply_prime_poison(self, features, camera_id):
++        if (
++                features is None
++                or len(features) == 0
++                or self.poison_epsilon == 0.0
++                or str(camera_id) not in self.poison_cameras):
++            return features
++        if self._poison_direction is None or self._poison_direction.shape[0] != features.shape[1]:
++            rng = np.random.default_rng(self.poison_seed)
++            direction = rng.normal(size=features.shape[1])
++            self._poison_direction = direction / max(np.linalg.norm(direction), 1e-12)
++        poisoned = features + self.poison_epsilon * self._poison_direction
++        return poisoned / np.maximum(np.linalg.norm(poisoned, axis=1, keepdims=True), 1e-12)
++
++    @staticmethod
++    def _parse_poison_cameras(poison_cameras):
++        if poison_cameras is None:
++            return set()
++        if isinstance(poison_cameras, str):
++            return {camera.strip() for camera in poison_cameras.split(",") if camera.strip()}
++        return {str(camera).strip() for camera in poison_cameras if str(camera).strip()}
++
++    def _export_prime_embeddings(self, features, detections, camera_id, frame_id):
++        if not self.export_embeddings or features is None or len(features) == 0:
++            return
++        with open(self.export_embeddings, "a", newline="") as f:
++            writer = csv.writer(f)
++            for detection_index, feature in enumerate(features):
++                if detections is not None and detection_index < len(detections):
++                    x1, y1, x2, y2 = detections[detection_index, :4]
++                else:
++                    x1 = y1 = x2 = y2 = ""
++                writer.writerow([
++                    camera_id,
++                    frame_id,
++                    detection_index,
++                    x1,
++                    y1,
++                    x2,
++                    y2,
++                    " ".join(str(float(value)) for value in feature),
++                ])
++
+diff --git a/tools/demo.py b/tools/demo.py
+index b2c0bd2..aaf818a 100644
+--- a/tools/demo.py
++++ b/tools/demo.py
+@@ -59,6 +59,11 @@ def make_parser():
+     parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot17_sbs_S50.pth", type=str,help="reid config file path")
+     parser.add_argument('--proximity_thresh', type=float, default=0.5, help='threshold for rejecting low overlap reid matches')
+     parser.add_argument('--appearance_thresh', type=float, default=0.25, help='threshold for rejecting low appearance similarity reid matches')
++    parser.add_argument("--prime-camera-id", default=None, help="PRIME camera id for embedding export/poisoning, e.g. c01")
++    parser.add_argument("--prime-poison-cameras", default="", help="Comma-separated PRIME camera ids to poison, e.g. c01,c02")
++    parser.add_argument("--prime-poison-epsilon", type=float, default=0.0, help="L2 magnitude of PRIME ReID embedding perturbation")
++    parser.add_argument("--prime-poison-seed", type=int, default=7, help="Random seed for PRIME ReID embedding perturbation")
++    parser.add_argument("--prime-export-embeddings", default=None, help="Optional CSV path for exported ReID embeddings")
+     return parser
+ 
+ 
+diff --git a/tools/mc_demo.py b/tools/mc_demo.py
+index 2c82097..c49979c 100644
+--- a/tools/mc_demo.py
++++ b/tools/mc_demo.py
+@@ -59,6 +59,11 @@ def make_parser():
+     parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot17_sbs_S50.pth", type=str,help="reid config file path")
+     parser.add_argument('--proximity_thresh', type=float, default=0.5, help='threshold for rejecting low overlap reid matches')
+     parser.add_argument('--appearance_thresh', type=float, default=0.25, help='threshold for rejecting low appearance similarity reid matches')
++    parser.add_argument("--prime-camera-id", default=None, help="PRIME camera id for embedding export/poisoning, e.g. c01")
++    parser.add_argument("--prime-poison-cameras", default="", help="Comma-separated PRIME camera ids to poison, e.g. c01,c02")
++    parser.add_argument("--prime-poison-epsilon", type=float, default=0.0, help="L2 magnitude of PRIME ReID embedding perturbation")
++    parser.add_argument("--prime-poison-seed", type=int, default=7, help="Random seed for PRIME ReID embedding perturbation")
++    parser.add_argument("--prime-export-embeddings", default=None, help="Optional CSV path for exported ReID embeddings")
+     return parser
+ 
+ 
+diff --git a/tracker/bot_sort.py b/tracker/bot_sort.py
+index 6b1bb48..9c33795 100644
+--- a/tracker/bot_sort.py
++++ b/tracker/bot_sort.py
+@@ -223,7 +223,15 @@ class BoTSORT(object):
+         self.appearance_thresh = args.appearance_thresh
+ 
+         if args.with_reid:
+-            self.encoder = FastReIDInterface(args.fast_reid_config, args.fast_reid_weights, args.device)
++            self.encoder = FastReIDInterface(
++                args.fast_reid_config,
++                args.fast_reid_weights,
++                args.device,
++                poison_cameras=getattr(args, "prime_poison_cameras", ""),
++                poison_epsilon=getattr(args, "prime_poison_epsilon", 0.0),
++                poison_seed=getattr(args, "prime_poison_seed", 7),
++                export_embeddings=getattr(args, "prime_export_embeddings", None),
++            )
+ 
+         self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
+ 
+@@ -266,7 +274,12 @@ class BoTSORT(object):
+ 
+         '''Extract embeddings '''
+         if self.args.with_reid:
+-            features_keep = self.encoder.inference(img, dets)
++            features_keep = self.encoder.inference(
++                img,
++                dets,
++                camera_id=getattr(self.args, "prime_camera_id", None),
++                frame_id=self.frame_id,
++            )
+ 
+         if len(dets) > 0:
+             '''Detections'''
+diff --git a/tracker/mc_bot_sort.py b/tracker/mc_bot_sort.py
+index 404cfcb..a6d36a5 100644
+--- a/tracker/mc_bot_sort.py
++++ b/tracker/mc_bot_sort.py
+@@ -249,7 +249,15 @@ class BoTSORT(object):
+         self.appearance_thresh = args.appearance_thresh
+ 
+         if args.with_reid:
+-            self.encoder = FastReIDInterface(args.fast_reid_config, args.fast_reid_weights, args.device)
++            self.encoder = FastReIDInterface(
++                args.fast_reid_config,
++                args.fast_reid_weights,
++                args.device,
++                poison_cameras=getattr(args, "prime_poison_cameras", ""),
++                poison_epsilon=getattr(args, "prime_poison_epsilon", 0.0),
++                poison_seed=getattr(args, "prime_poison_seed", 7),
++                export_embeddings=getattr(args, "prime_export_embeddings", None),
++            )
+ 
+         self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
+ 
+@@ -289,7 +297,12 @@ class BoTSORT(object):
+ 
+         '''Extract embeddings '''
+         if self.args.with_reid:
+-            features_keep = self.encoder.inference(img, dets)
++            features_keep = self.encoder.inference(
++                img,
++                dets,
++                camera_id=getattr(self.args, "prime_camera_id", None),
++                frame_id=self.frame_id,
++            )
+ 
+         if len(dets) > 0:
+             '''Detections'''
+-- 
+2.40.0.windows.1
