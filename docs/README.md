@@ -9,6 +9,7 @@ Project documentation is organized by use:
 
 Key setup and collaboration documents:
 
+- `setup/SABRINA_QUICKSTART.md`: one-page setup and daily git workflow for Sabrina. Start here.
 - `setup/RESEARCHER_SETUP.md`: researcher-facing status, setup, and readiness gates.
 - `setup/STUDENT_SETUP.md`: student setup, git workflow, and Week 1 responsibilities.
 - `setup/WEEK1_STUDENT_WALKTHROUGH.md`: first-assignment student walkthrough using local `.venv` setup, checks, branch, commit, and PR steps.
