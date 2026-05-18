@@ -112,7 +112,7 @@ FastReIDInterface.inference()
 - Students can describe why ByteTrack alone is not enough for this project: it lacks the ReID appearance layer that creates the cross-camera identity attack surface.
 - If model weights are not yet available, this can remain a code-location and environment check rather than a full tracker run.
 
-### 7. What should Christina and Floyd each own this week?
+### 7. What should Christine and Floyd each own this week?
 
 Decision needed:
 
@@ -120,7 +120,7 @@ Decision needed:
 
 Suggested default:
 
-- Christina: Seed 1, poisoning survey vocabulary, and the question "what is data poisoning and why does it matter for vision?"
+- Christine: Seed 1, poisoning survey vocabulary, and the question "what is data poisoning and why does it matter for vision?"
 - Floyd: Seed 2, ByteTrack pipeline basics, and the question "how does ByteTrack work and what are MOTA and IDF1?"
 - Both: run the agreed Week 1 setup check and write one paragraph explaining ReID embeddings.
 

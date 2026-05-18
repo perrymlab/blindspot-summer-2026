@@ -124,7 +124,7 @@ Researcher tasks:
 
 Researcher outputs to create or confirm:
 
-- Christina midpoint rubric and narrative.
+- Christine midpoint rubric and narrative.
 - Floyd midpoint rubric and narrative.
 - Updated research direction memo.
 - One-sentence paper contribution statement.
@@ -195,7 +195,7 @@ Researcher tasks:
 Researcher outputs to create or confirm:
 
 - Introduction draft.
-- Written feedback on Christina's literature review section.
+- Written feedback on Christine's literature review section.
 - Written feedback on Floyd's literature review section.
 - Remaining citation-gap assignments.
 

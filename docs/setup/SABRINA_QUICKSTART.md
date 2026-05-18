@@ -153,16 +153,16 @@ git branch -d docs/week2-rubric
 
 Students see everything on `main`. Place files in the folders they own so they show up in the right place when they pull.
 
-- Christina's folder: `papers/christina/`.
+- Christine's folder: `papers/christina/`.
   - Reading notes, assigned writing, paper presentations.
-  - Christina is expected to edit files inside this folder.
+  - Christine is expected to edit files inside this folder.
 - Floyd's folder: `papers/floyd/`.
   - Same idea for Floyd.
 - Shared bibliography (both students): `papers/shared-bibliography/`.
 - Weekly experiment work: `experiments/weekXX-<topic>/`.
 - Weekly briefs and rubrics you author: `docs/weekly-briefs/`.
 
-For example, to add Christina's Week 2 reading assignment:
+For example, to add Christine's Week 2 reading assignment:
 
 ```bash
 git checkout main
@@ -170,7 +170,7 @@ git pull
 git checkout -b assignments/christina-week2
 # create or edit papers/christina/week2-assignment.md in your editor
 git add papers/christina/week2-assignment.md
-git commit -m "Add Christina Week 2 reading assignment"
+git commit -m "Add Christine Week 2 reading assignment"
 git push -u origin assignments/christina-week2
 ```
 
