@@ -57,7 +57,7 @@ git checkout main
 git pull
 ```
 
-Christina:
+Christine:
 
 ```bash
 git checkout -b student/christina-week1-poisoning-notes
@@ -71,7 +71,7 @@ git checkout -b student/floyd-week1-bytetrack-notes
 
 ## 4. Complete The First Assignment
 
-Christina:
+Christine:
 
 - Read Seed 1: Cinà et al., Wild Patterns Reloaded.
 - Write one annotated bibliography entry about data poisoning and why it matters for vision.
@@ -124,11 +124,11 @@ Do not commit:
 
 ## 6. Commit And Push
 
-Christina example:
+Christine example:
 
 ```bash
 git add papers/christina/week1-wild-patterns-reloaded.md papers/christina/week1-reid-embedding-summary.md
-git commit -m "Add Christina week 1 notes"
+git commit -m "Add Christine week 1 notes"
 git push -u origin student/christina-week1-poisoning-notes
 ```
 

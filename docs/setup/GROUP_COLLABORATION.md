@@ -150,7 +150,7 @@ Weeks 8-10:
 Recommended ownership:
 
 - Sabrina owns `docs/`, final decisions in `experiments/`, and accepted summaries in `results/`.
-- Christina owns `papers/christina/` and her assigned experiment notes.
+- Christine owns `papers/christina/` and her assigned experiment notes.
 - Floyd owns `papers/floyd/` and his assigned experiment notes.
 - Both students may contribute to `papers/shared-bibliography/`.
 - Shared code under `src/` and `scripts/` requires researcher review before merge.
