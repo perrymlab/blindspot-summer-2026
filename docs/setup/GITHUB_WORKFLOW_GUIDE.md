@@ -32,7 +32,7 @@ Automated testing:
 - It installs the local package, runs `python scripts/smoke_test.py`, and runs `python -m pytest`.
 - The workflow intentionally does not clone BoT-SORT or download CityFlowV2, model weights, videos, or raw experiment outputs. Those remain local/manual checks because they require external data and compute.
 
-## Christina
+## Christine
 
 Use this pattern for paper notes, bibliography entries, and assigned experiment notes.
 
@@ -57,7 +57,7 @@ git diff
 .venv/bin/python scripts/smoke_test.py
 .venv/bin/python -m pytest
 git add <files>
-git commit -m "Add Christina week X notes"
+git commit -m "Add Christine week X notes"
 git push -u origin student/christina-<topic>
 ```
 

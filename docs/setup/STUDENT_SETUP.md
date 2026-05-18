@@ -99,7 +99,7 @@ Put the whole workflow into practice right now. Follow these steps:
 
 4. Save the file to your folder:
    ```
-   Christina →  papers/christina/day1-reflection.md
+   Christine →  papers/christina/day1-reflection.md
    Floyd     →  papers/floyd/day1-reflection.md
    ```
 
