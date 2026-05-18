@@ -113,10 +113,9 @@ git status
 git add <paths>
 git commit -m "Short description of what you changed"
 git push -u origin docs/week2-rubric
-git push -f -u origin main
 ```
 
-The first push of a new branch prints a "Create a pull request" URL. Click it
+The first push of a new branch prints a "Create a pull request" URL. Click it.
 
 ### 2e. Open the pull request
 
