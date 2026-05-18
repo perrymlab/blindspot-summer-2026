@@ -1,6 +1,6 @@
 # Blindspot Summer 2026
 
-Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Sabrina Perry is the faculty researcher; Christina Page and Floyd Dodwell are the students.
+Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Sabrina Perry is the faculty researcher; Christine Page and Floyd Dodwell are the students.
 
 ## Repository Layout
 
