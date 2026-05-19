@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -10,11 +11,29 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def default_data_root() -> Path:
+    """Resolve the project's default data root.
+
+    Priority: ``BLINDSPOT_DATA_ROOT`` env var, then ``~/blindspot_data``.
+    Kept user-agnostic so no machine-specific paths leak into the repo.
+    """
+    env = os.environ.get("BLINDSPOT_DATA_ROOT")
+    if env:
+        return Path(env).expanduser()
+    return Path.home() / "blindspot_data"
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Check whether a local machine is ready for PRIME real-data runs."
     )
-    parser.add_argument("--cityflow-root", type=Path, default=None)
+    parser.add_argument(
+        "--cityflow-root",
+        type=Path,
+        default=default_data_root(),
+        help="Dataset root containing scenario subfolders. "
+        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data.",
+    )
     parser.add_argument("--detector-weights", type=Path, default=None)
     parser.add_argument("--reid-weights", type=Path, default=None)
     parser.add_argument("--bot-sort-path", type=Path, default=ROOT / "vendor" / "BoT-SORT")
@@ -83,16 +102,15 @@ def main() -> int:
         hook_path = bot_sort_path / "fast_reid" / "fast_reid_interfece.py"
         failures += not check(hook_path.exists(), "BoT-SORT ReID hook file", str(hook_path))
 
-    if args.cityflow_root is None:
-        failures += not check(False, "CityFlowV2 root provided", "pass --cityflow-root")
-    else:
-        failures += not check(args.cityflow_root.exists(), "CityFlowV2 root exists", str(args.cityflow_root))
-        for scenario in [item.strip() for item in args.require_scenarios.split(",") if item.strip()]:
-            failures += not check(
-                scenario_exists(args.cityflow_root, scenario),
-                f"CityFlowV2 scenario {scenario}",
-                str(args.cityflow_root),
-            )
+    failures += not check(
+        args.cityflow_root.exists(), "data root exists", str(args.cityflow_root)
+    )
+    for scenario in [item.strip() for item in args.require_scenarios.split(",") if item.strip()]:
+        failures += not check(
+            scenario_exists(args.cityflow_root, scenario),
+            f"scenario {scenario}",
+            str(args.cityflow_root / scenario),
+        )
 
     if args.detector_weights is None:
         failures += not check(False, "detector weights provided", "pass --detector-weights")
