@@ -81,6 +81,7 @@ You can paste any of these into a comment so the student knows what to run.
 git checkout main
 git pull
 git branch -d <their-branch-name>
+git fetch --prune
 ```
 
 Next task starts from a fresh branch off updated `main`.

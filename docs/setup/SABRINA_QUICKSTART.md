@@ -147,6 +147,7 @@ The branch is auto-deleted on the remote.
 git checkout main
 git pull
 git branch -d docs/week2-rubric
+git fetch --prune
 ```
 
 ## 3. Where to put student materials
@@ -226,6 +227,7 @@ git push -u origin <branch-name>
 git checkout main
 git pull
 git branch -d <branch-name>
+git fetch --prune
 ```
 
 If you keep to this card, the repo stays clean and student work flows in without surprises.
