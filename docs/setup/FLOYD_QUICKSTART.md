@@ -150,6 +150,7 @@ After she merges, the branch is auto-deleted on the remote.
 git checkout main
 git pull
 git branch -d student/floyd-week2-bytetrack-notes
+git fetch --prune
 ```
 
 ## 3. Pitfalls and how to avoid them
@@ -206,6 +207,7 @@ git push -u origin student/floyd-<topic>
 git checkout main
 git pull
 git branch -d student/floyd-<topic>
+git fetch --prune
 ```
 
 If you keep to this card, your work flows in cleanly and Sabrina can review quickly.
