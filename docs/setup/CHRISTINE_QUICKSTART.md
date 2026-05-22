@@ -170,7 +170,7 @@ Will be rejected with `GH006: Protected branch update failed`. This is by design
 
 ### 3c. Do not force-push or reset shared branches
 
-If something goes wrong, stop and ask Sabrina or Brian. Send them:
+If something goes wrong, stop and ask Sabrina. Send her:
 
 ```bash
 git status
