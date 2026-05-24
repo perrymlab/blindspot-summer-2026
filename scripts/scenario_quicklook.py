@@ -68,6 +68,14 @@ def parse_args() -> argparse.Namespace:
         help="Total composite width in pixels (default: 1920).",
     )
     parser.add_argument(
+        "--tile-height",
+        type=int,
+        default=720,
+        help="Per-camera tile height in pixels before hstack (default: 720). "
+        "Each input is scaled to this height (preserving aspect ratio) so cameras "
+        "with different native resolutions can be stacked.",
+    )
+    parser.add_argument(
         "--ffmpeg",
         default=shutil.which("ffmpeg") or "ffmpeg",
         help="Path to ffmpeg executable.",
@@ -80,14 +88,20 @@ def build_quicklook_cmd(
     sources: list[Path],
     seek_per_input: list[float],
     width: int,
+    tile_height: int,
     out_path: Path,
 ) -> list[str]:
     cmd = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y"]
     for src, seek in zip(sources, seek_per_input):
         cmd += ["-ss", f"{seek:.3f}", "-i", str(src)]
     n = len(sources)
-    inputs = "".join(f"[{i}:v]" for i in range(n))
-    filter_complex = f"{inputs}hstack=inputs={n},scale={width}:-2:flags=lanczos"
+    scales = ";".join(
+        f"[{i}:v]scale=-2:{tile_height}:flags=lanczos[v{i}]" for i in range(n)
+    )
+    stacked_inputs = "".join(f"[v{i}]" for i in range(n))
+    filter_complex = (
+        f"{scales};{stacked_inputs}hstack=inputs={n},scale={width}:-2:flags=lanczos"
+    )
     cmd += ["-filter_complex", filter_complex, "-frames:v", "1", str(out_path)]
     return cmd
 
@@ -127,7 +141,12 @@ def main() -> int:
 
         out_path = args.out / f"{window.scenario}.png"
         cmd = build_quicklook_cmd(
-            args.ffmpeg, sources, [seek] * len(sources), args.width, out_path
+            args.ffmpeg,
+            sources,
+            [seek] * len(sources),
+            args.width,
+            args.tile_height,
+            out_path,
         )
         print(f"  {window.scenario}: midpoint={seek:.3f}s -> {out_path}")
         result = subprocess.run(cmd)

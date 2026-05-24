@@ -75,32 +75,32 @@ All commands assume the project venv is active.
 Dry-run the trim plan against the manifest:
 
 ```cmd
-python scripts\trim_scenarios.py
+python scripts/trim_scenarios.py
 ```
 
 Apply the trims (writes `vdo_trim.mp4` next to each `vdo.mp4`):
 
 ```cmd
-python scripts\trim_scenarios.py --apply
+python scripts/trim_scenarios.py --apply
 ```
 
 Restrict to a single scenario while iterating:
 
 ```cmd
-python scripts\trim_scenarios.py --scenario S01 --apply
+python scripts/trim_scenarios.py --scenario S01 --apply
 ```
 
 For sub-second-accurate trims, re-encode instead of stream-copying
 (several times slower):
 
 ```cmd
-python scripts\trim_scenarios.py --apply --reencode
+python scripts/trim_scenarios.py --apply --reencode
 ```
 
 Render side-by-side composite PNGs for PR review:
 
 ```cmd
-python scripts\scenario_quicklook.py
+python scripts/scenario_quicklook.py
 ```
 
 Each composite lands in `runs/quicklook/S0N.png` and shows one frame from

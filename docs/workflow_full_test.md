@@ -79,8 +79,8 @@ On Windows, the system `python` launcher is usually named `python` (not `python3
 Windows (cmd):
 
 ```bat
-python scripts\setup_repo.py --skip-bot-sort
-.venv\Scripts\python.exe scripts\smoke_test.py
+python scripts/setup_repo.py --skip-bot-sort
+.venv\Scripts\python.exe scripts/smoke_test.py
 .venv\Scripts\python.exe -m pytest
 ```
 
@@ -141,7 +141,7 @@ Then run the local checks through the virtual environment.
 Windows (cmd):
 
 ```bat
-.venv\Scripts\python.exe scripts\smoke_test.py
+.venv\Scripts\python.exe scripts/smoke_test.py
 .venv\Scripts\python.exe -m pytest
 ```
 
@@ -209,9 +209,9 @@ Make a tiny temporary file.
 Windows (cmd):
 
 ```bat
-> papers\christina\week1-direct-push-block-test.md echo # Direct Push Block Test
->> papers\christina\week1-direct-push-block-test.md echo.
->> papers\christina\week1-direct-push-block-test.md echo Temporary file for branch-protection validation.
+> papers/christina/week1-direct-push-block-test.md echo # Direct Push Block Test
+>> papers/christina/week1-direct-push-block-test.md echo.
+>> papers/christina/week1-direct-push-block-test.md echo Temporary file for branch-protection validation.
 git add papers/christina/week1-direct-push-block-test.md
 git commit -m "Test direct push protection"
 ```
