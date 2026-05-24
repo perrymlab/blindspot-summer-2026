@@ -138,7 +138,7 @@ Do not commit the weight file.
 Each machine should keep a private local path file:
 
 ```bash
-copy docs\setup\LOCAL_PATHS.template.md docs\setup\LOCAL_PATHS.md
+cp docs/setup/LOCAL_PATHS.template.md docs/setup/LOCAL_PATHS.md
 ```
 
 `docs/setup/LOCAL_PATHS.md` is ignored by git because it contains machine-specific paths.
