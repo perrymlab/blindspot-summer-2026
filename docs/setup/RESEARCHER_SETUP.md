@@ -1,12 +1,10 @@
 # Researcher Setup And Project Status
 
-This document is for Sabrina or whoever is coordinating the summer project.
+This document is for Sabrina.
 
-Source of truth: `docs/schedules/PRIME_Schedule_new_revised.pdf`. This setup document translates that schedule into repository actions and readiness checks.
+`docs/schedules/PRIME_Schedule_new_revised.pdf`. 
 
 ## Current Completion Status
-
-From a researcher point of view, the repository is ready for Week 1 orientation, local setup checks, and synthetic proof-of-concept experiments. It partially supports the Week 1 and Week 2 setup goals in the schedule, but it is not yet a finished real-data MTMC experiment pipeline.
 
 Implemented and usable:
 
