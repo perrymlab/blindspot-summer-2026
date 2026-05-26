@@ -11,11 +11,7 @@ Key setup and collaboration documents:
 
 - `setup/SABRINA_QUICKSTART.md`: one-page setup and daily git workflow for Sabrina. Start here if you are Sabrina.
 - `setup/SABRINA_PR_REVIEW.md`: how Sabrina reviews, approves, requests changes on, or closes student pull requests.
-- `setup/CHRISTINE_QUICKSTART.md`: one-page setup and daily git workflow for Christine. Start here if you are Christine.
-- `setup/FLOYD_QUICKSTART.md`: one-page setup and daily git workflow for Floyd. Start here if you are Floyd.
-- `setup/RESEARCHER_SETUP.md`: researcher-facing status, setup, and readiness gates.
-- `setup/STUDENT_SETUP.md`: student setup, git workflow, and Week 1 responsibilities.
-- `setup/WEEK1_STUDENT_WALKTHROUGH.md`: first-assignment student walkthrough using local `.venv` setup, checks, branch, commit, and PR steps.
+- `setup/STUDENT_SETUP.md`: student prerequisites, setup, and daily git workflow. Start here if you are a student.
 - `setup/GROUP_COLLABORATION.md`: shared branch, folder, review, and experiment handoff rules.
 - `setup/GITHUB_WORKFLOW_GUIDE.md`: short GitHub workflow for Sabrina and student contributors.
 - `setup/PYTHON_ENVIRONMENT.md`: concise Python environment setup commands for local `.venv` and conda.

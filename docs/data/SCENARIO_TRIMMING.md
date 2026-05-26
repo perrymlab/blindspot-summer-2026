@@ -6,6 +6,75 @@ For research runs we trim each scenario to a **2 to 5 minute window** in which
 the same vehicles are visible across all three cameras during the window.
 This page explains why and how.
 
+## Prerequisites
+
+Before you can trim, three things need to be in place on your machine.
+
+### 1. ffmpeg on `PATH`
+
+Both `scripts/trim_scenarios.py` and `scripts/scenario_quicklook.py` shell out
+to `ffmpeg`. Verify with:
+
+```cmd
+ffmpeg -version
+```
+
+If that fails, install one of the following:
+
+- **Windows (winget)**:
+  ```cmd
+  winget install --id=Gyan.FFmpeg -e
+  ```
+  Open a **new** terminal window after install so `PATH` refreshes. If
+  `winget` is unavailable, download the "release essentials" build from
+  `https://www.gyan.dev/ffmpeg/builds/`, unzip to `C:\ffmpeg\`, and add
+  `C:\ffmpeg\bin` to your user `PATH` via *System Properties -> Environment
+  Variables*.
+- **macOS**: `brew install ffmpeg`
+- **Linux (Debian/Ubuntu)**: `sudo apt install ffmpeg`
+
+If you cannot put ffmpeg on `PATH`, both scripts accept
+`--ffmpeg C:\full\path\to\ffmpeg.exe` as a fallback.
+
+### 2. Videos arranged in the project layout
+
+The trim script expects each scenario at:
+
+```
+<data root>/S0N/c001/vdo.mp4
+<data root>/S0N/c002/vdo.mp4
+<data root>/S0N/c003/vdo.mp4
+```
+
+If your raw captures arrive as `video N/Intersection-Camera-K_*.mp4` folders,
+convert them once with:
+
+```cmd
+python scripts\organize_blindspot_data.py --apply
+```
+
+That script writes nothing to git; it just renames files inside your data
+root. Run it without `--apply` first to dry-run the plan.
+
+### 3. Data root resolved
+
+By default everything resolves to `~/blindspot_data` (`C:\Users\<you>\blindspot_data`
+on Windows). To use a different location, set the `BLINDSPOT_DATA_ROOT`
+environment variable, or pass `--data-root` to the script:
+
+```cmd
+set BLINDSPOT_DATA_ROOT=D:\datasets\blindspot
+```
+
+(Use `setx BLINDSPOT_DATA_ROOT "D:\datasets\blindspot"` to persist across
+sessions on Windows.)
+
+### 4. A video player for scrubbing
+
+To pick the trim window you will scrub through the source `.mp4` files. Any
+player that displays a time cursor works: VLC, Windows Media Player, the
+macOS Quick Look preview, or your editor's video preview.
+
 ## Why trim
 
 The detector in `src/prime_mtmc/detector.py` scores cameras using
