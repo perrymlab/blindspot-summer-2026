@@ -1,195 +1,221 @@
-# Scenario Trimming Workflow
+# Scenario Trimming Guide
 
-Each scenario in `~/blindspot_data/S0N/` contains three camera videos
-(`c001/vdo.mp4`, `c002/vdo.mp4`, `c003/vdo.mp4`) from one intersection.
-For research runs we trim each scenario to a **2 to 5 minute window** in which
-the same vehicles are visible across all three cameras during the window.
-This page explains why and how.
+**Who this is for:** Dr. Perry, Christine, and Floyd  
+**When to do this:** Week 3 - after Dr. Perry shares the intersection videos with you  
+**What you are doing:** Creating a data folder on your laptop, copying the videos into it, watching through the footage, picking the best 2–5 minute window for each scenario, and filling in a shared spreadsheet so the trimming tool knows what to cut
 
-## Prerequisites
+---
 
-Before you can trim, three things need to be in place on your machine.
+## Background — why we trim
+Each scenario contains three synchronized camera videos of the same intersection — `c001/vdo.mp4`, `c002/vdo.mp4`, and `c003/vdo.mp4`. The full videos are about 15 minutes long. For our experiments we only need a 2–5 minute window where the same vehicles are clearly visible across all three cameras at the same time.
 
-### 1. ffmpeg on `PATH`
+The reason this matters: our detector works by comparing the appearance embeddings of the same vehicle as seen from different cameras. If a vehicle only appears in one camera during the experiment window it contributes no data to the comparison. A good trim window is one where multiple vehicles pass through all three camera views during the same period.
 
-Both `scripts/trim_scenarios.py` and `scripts/scenario_quicklook.py` shell out
-to `ffmpeg`. Verify with:
+**Christine - scenarios S01 through S09**  
+**Floyd - scenarios S10 through S18**
 
-```cmd
-ffmpeg -version
+---
+
+## Step 0 — Create your data folder and copy the videos
+
+This is a one-time setup step. You only need to do this once.
+
+**Create the data folder on your laptop:**
+
+Open your terminal and run:
+
+```bash
+mkdir ~/blindspot_data
 ```
 
-If that fails, install one of the following:
+This creates a folder called `blindspot_data` in your home directory. You can also find it in Finder at the top level of your home folder.
 
-- **Windows (winget)**:
-  ```cmd
-  winget install --id=Gyan.FFmpeg -e
-  ```
-  Open a **new** terminal window after install so `PATH` refreshes. If
-  `winget` is unavailable, download the "release essentials" build from
-  `https://www.gyan.dev/ffmpeg/builds/`, unzip to `C:\ffmpeg\`, and add
-  `C:\ffmpeg\bin` to your user `PATH` via *System Properties -> Environment
-  Variables*.
-- **macOS**: `brew install ffmpeg`
-- **Linux (Debian/Ubuntu)**: `sudo apt install ffmpeg`
-
-If you cannot put ffmpeg on `PATH`, both scripts accept
-`--ffmpeg C:\full\path\to\ffmpeg.exe` as a fallback.
-
-### 2. Videos arranged in the project layout
-
-The trim script expects each scenario at:
+**Copy the videos into that folder:**
+Dr. Perry will share the intersection video folders with you. Once you have them on your machine, open Finder and drag all the video folders into `~/blindspot_data`. When you are done the folder should look like this:
 
 ```
-<data root>/S0N/c001/vdo.mp4
-<data root>/S0N/c002/vdo.mp4
-<data root>/S0N/c003/vdo.mp4
+blindspot_data/
+  video 1/
+  video 2/
+  video 3/
+  ...
+  video 18/
 ```
 
-If your raw captures arrive as `video N/Intersection-Camera-K_*.mp4` folders,
-convert them once with:
+Do not rename any of the video folders. The organize script expects the original folder names.
 
-```cmd
-python scripts\organize_blindspot_data.py --apply
+---
+
+## Step 1 — Set up your environment
+
+Open your terminal, navigate to the repo, and activate the virtual environment:
+
+```bash
+cd ~/blindspot-summer-2026
+source .venv/bin/activate
 ```
 
-That script writes nothing to git; it just renames files inside your data
-root. Run it without `--apply` first to dry-run the plan.
+Also install ffmpeg. This is the tool that does the actual video cutting:
 
-### 3. Data root resolved
+```bash
+brew install ffmpeg
+```
+---
 
-By default everything resolves to `~/blindspot_data` (`C:\Users\<you>\blindspot_data`
-on Windows). To use a different location, set the `BLINDSPOT_DATA_ROOT`
-environment variable, or pass `--data-root` to the script:
+## Step 2 — Organize the videos into scenario folders
 
-```cmd
-set BLINDSPOT_DATA_ROOT=D:\datasets\blindspot
+The organize script moves your videos from the raw folder structure into the structure the trimming tool expects.
+
+First do a dry run to confirm everything looks right:
+
+```bash
+python scripts/organize_blindspot_data.py
 ```
 
-(Use `setx BLINDSPOT_DATA_ROOT "D:\datasets\blindspot"` to persist across
-sessions on Windows.)
+You should see output showing planned moves like this:
 
-### 4. A video player for scrubbing
+```
+[dry run] MOVE ~/blindspot_data/video 1/Intersection-Camera-1_...mp4
+     -> ~/blindspot_data/S01/c001/vdo.mp4
+```
 
-To pick the trim window you will scrub through the source `.mp4` files. Any
-player that displays a time cursor works: VLC, Windows Media Player, the
-macOS Quick Look preview, or your editor's video preview.
+If that looks correct, apply it:
 
-## Why trim
+```bash
+python scripts/organize_blindspot_data.py --apply
+```
 
-The detector in `src/prime_mtmc/detector.py` scores cameras using
-**cross-camera same-`track_id` pairs**: a detection in `c001` is matched to a
-detection of the same vehicle in `c002` (and so on), and the cosine distance
-between their ReID embeddings becomes one row of evidence. A camera that
-contributes **zero co-visible vehicles** in the trim window contributes zero
-data to the experiment.
+After this runs your `blindspot_data` folder will be reorganized into:
 
-A 2 to 5 minute daylight window at a busy intersection typically yields tens
-of co-visible vehicles per camera pair, which is plenty for the per-camera
-mean and variance z-score the detector computes. Picking 2 vs. 5 minutes is
-a per-scenario judgement: 2 is fine for clearly busy daylight footage, 5 is
-safer for low-traffic or twilight scenarios.
+```
+blindspot_data/
+  S01/
+    c001/vdo.mp4
+    c002/vdo.mp4
+    c003/vdo.mp4
+  S02/
+    c001/vdo.mp4
+    ...
+```
 
-## What to commit, what not to commit
+---
 
-- **Commit** the manifest `data/scenario_windows.csv`, which captures the
-  window choice and reviewer-readable notes.
-- **Do not commit** the trimmed `vdo_trim.mp4` files. They live in
-  `~/blindspot_data/` and are reproducible by re-running the trim script
-  against the committed manifest.
+## Step 3 — Watch through your assigned scenarios
+For each of your assigned scenarios, open all three camera videos side by side in QuickTime:
 
-## Filling in the manifest
+```
+~/blindspot_data/S01/c001/vdo.mp4
+~/blindspot_data/S01/c002/vdo.mp4
+~/blindspot_data/S01/c003/vdo.mp4
+```
 
-`data/scenario_windows.csv` has one row per scenario:
+You are looking for a moment where **the same vehicle is visible in all three camera feeds at the same time**. This is your anchor moment. Note the timestamp when you find it.
+
+**What makes a good window:**
+
+- At least one vehicle clearly visible across all three cameras at the same time
+- Daytime footage with good visibility
+- Busy enough that roughly 5 or more vehicles pass through all three cameras during the window
+- 2 minutes is fine for a busy intersection — use 5 minutes for quieter or low-light footage
+
+**What to avoid:**
+- Windows where most vehicles only appear in one or two cameras
+- Very dark or foggy footage
+- Periods with very little traffic
+---
+
+## Step 4 — Fill in the manifest
+Once you have chosen a window for a scenario, open this file in VS Code:
+
+```
+data/scenario_windows.csv
+```
+
+Add one row for your scenario using this format:
 
 ```
 scenario,start,duration_s,anchor_notes
 S01,00:01:30,180,"red pickup co-visible across all cams ~01:35; ~15 vehicles co-visible during window"
-S02,45,300,"low traffic Sunday morning; chose 5 min for sample size"
-...
 ```
 
-Column rules:
+**Column guide:**
+| Column | What to put |
+|---|---|
+| `scenario` | The scenario folder name — S01, S02, etc. |
+| `start` | When your window starts from the beginning of the video. Use seconds (45) or time format (1:30) |
+| `duration_s` | How long the window is in seconds. Between 120 and 300. |
+| `anchor_notes` | Describe at least one vehicle visible in all three cameras and give a rough count of total co-visible vehicles |
 
-- **`scenario`**: scenario folder name, e.g. `S01`.
-- **`start`**: window start, measured from the beginning of the source
-  `vdo.mp4`. Accepts either plain seconds (`45`, `45.5`) or an HMS string
-  (`00:01:30`, `1:30`, `1:30.5`).
-- **`duration_s`**: window length in seconds. Aim for 120 to 300.
-- **`anchor_notes`**: free text. State (a) at least one specific vehicle that
-  is visible in all three cameras within the window, and (b) a rough count of
-  total co-visible vehicles during the window. This is what Sabrina reads
-  during PR review.
+**Example rows:**
 
-Rows with empty `start` or `duration_s` are skipped by the tooling, so the
-manifest can be filled in scenario by scenario as students review footage.
+```
+S01,00:01:30,180,"white SUV co-visible across all cams ~01:35; ~15 vehicles co-visible"
+S02,45,300,"low traffic; chose 5 min for sample size; blue sedan co-visible ~01:00"
+S03,00:03:00,120,"busy midday; red truck co-visible ~03:10; ~20 vehicles co-visible"
+```
 
-## How to pick a window
+Leave rows blank if you have not reviewed that scenario yet. The trimming tool will skip blank rows automatically.
 
-1. Open `c001/vdo.mp4`, `c002/vdo.mp4`, `c003/vdo.mp4` for the scenario in
-   any video player that displays a time cursor.
-2. Scrub forward until you find a moment where the same vehicle is clearly
-   visible in all three feeds. Note the timestamp.
-3. Pick a window that brackets that moment: typically 30 to 60 seconds
-   before the anchor and 60 to 240 seconds after, totalling 2 to 5 minutes.
-4. Sanity check: during the window, count how many additional vehicles pass
-   through all three cameras. If the count is below ~5, extend the window
-   (up to 5 minutes) or pick a different start.
-5. Fill in the manifest row.
+---
 
-## Running the tooling
+## Step 5 — Run the trimming tool
+After filling in one or more manifest rows, do a dry run first:
 
-All commands assume the project venv is active.
-
-Dry-run the trim plan against the manifest:
-
-```cmd
+```bash
 python scripts/trim_scenarios.py
 ```
 
-Apply the trims (writes `vdo_trim.mp4` next to each `vdo.mp4`):
+If the output looks correct, apply the trim:
 
-```cmd
+```bash
 python scripts/trim_scenarios.py --apply
 ```
 
-Restrict to a single scenario while iterating:
+To trim just one scenario while you are working through them one at a time:
 
-```cmd
+```bash
 python scripts/trim_scenarios.py --scenario S01 --apply
 ```
 
-For sub-second-accurate trims, re-encode instead of stream-copying
-(several times slower):
+---
 
-```cmd
-python scripts/trim_scenarios.py --apply --reencode
-```
+## Step 6 — Generate preview images
+After trimming, run the quicklook script to generate a side-by-side preview image for each scenario:
 
-Render side-by-side composite PNGs for PR review:
-
-```cmd
+```bash
 python scripts/scenario_quicklook.py
 ```
 
-Each composite lands in `runs/quicklook/S0N.png` and shows one frame from
-each camera at the midpoint of the chosen window. Reviewers can confirm at a
-glance that the anchor vehicle named in `anchor_notes` really is present.
+Preview images are saved to `runs/quicklook/S01.png` and so on. Open them in Finder to confirm that all three cameras show the intersection clearly at the midpoint of your chosen window.
 
-## Defaults and overrides
+---
 
-- The data root defaults to `$BLINDSPOT_DATA_ROOT` or `~/blindspot_data`.
-- The camera subfolders default to `c001,c002,c003`. Override with
-  `--cameras` if a future scenario uses a different layout.
-- The ffmpeg executable is taken from `PATH`; override with `--ffmpeg`.
+## Step 7 — Commit your work
+The trimmed video files are large and should not be committed to GitHub. What you commit is just the manifest and the preview images.
 
-## Suggested PR workflow
+**Christine:**
+```bash
+git checkout main
+git pull
+git checkout -b trim-scenarios-christine
+git add data/scenario_windows.csv
+git add runs/quicklook/
+git commit -m "add trim windows for S01 through S09"
+git push -u origin trim-scenarios-christine
+```
 
-1. Branch from `main`.
-2. Fill in one or more rows of `data/scenario_windows.csv`.
-3. Run the quicklook script and attach a couple of the generated PNGs to the
-   PR description.
-4. Request review from Sabrina. She approves the window choices by reading
-   the manifest diff and the composite images, without needing the videos.
-5. After merge, anyone with the raw footage in `~/blindspot_data/` can
-   reproduce the trims with `python scripts/trim_scenarios.py --apply`.
+**Floyd:**
+```bash
+git checkout main
+git pull
+git checkout -b trim-scenarios-floyd
+git add data/scenario_windows.csv
+git add runs/quicklook/
+git commit -m "add trim windows for S10 through S18"
+git push -u origin trim-scenarios-floyd
+```
+
+Then open a pull request on GitHub. In the pull request description include one or two of the quicklook images so Dr. Perry can confirm the window choices look right without needing to download the videos.
+
+---
+
