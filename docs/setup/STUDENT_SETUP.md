@@ -14,6 +14,28 @@ Every git command runs in the terminal. Open it before anything else.
 
 ---
 
+## First Time Only — Install Prerequisites
+
+These are one-time installs on a new machine. Skip any you already have.
+
+- **Git** — required to clone and push. Verify with `git --version`.
+  - Windows: install Git for Windows from `https://git-scm.com/download/win`.
+  - macOS: `git --version` will offer to install Xcode Command Line Tools.
+  - Linux: `sudo apt install git` (or distro equivalent).
+- **Python 3.10 or newer** — required to run the project. Verify with
+  `python --version` (Windows) or `python3 --version` (macOS/Linux).
+  - Windows: install from `https://www.python.org/downloads/` and tick
+    *Add Python to PATH* during install.
+  - macOS/Linux: usually already present; otherwise install from your
+    package manager or `https://www.python.org/downloads/`.
+- **ffmpeg** — required for the scenario trim and quicklook scripts. Verify
+  with `ffmpeg -version`.
+  - Windows: `winget install --id=Gyan.FFmpeg -e`, then open a new terminal.
+  - macOS: `brew install ffmpeg`.
+  - Linux: `sudo apt install ffmpeg`.
+
+---
+
 ## First Time Only — Clone the Repo
 
 Do this once to get the repository on your machine. You won't need to do this again.
@@ -23,10 +45,6 @@ git clone https://github.com/perrymlab/blindspot-summer-2026
 cd blindspot-summer-2026
 python scripts/setup_repo.py
 ```
-
----
-
-> **Run this every session:** Before you write a single line, pull. Before you close your laptop, push.
 
 ---
 

@@ -11,6 +11,14 @@ Repo: `https://github.com/perrymlab/blindspot-summer-2026`
 - Git for Windows (or git on macOS/Linux).
 - Python 3.10 or newer.
 - A terminal you are comfortable with: Command Prompt, PowerShell, or Git Bash.
+- `ffmpeg` on `PATH`. Required for the scenario trim and quicklook scripts.
+  Verify with `ffmpeg -version`. To install:
+  - **Windows**: `winget install --id=Gyan.FFmpeg -e`, then open a new
+    terminal so `PATH` refreshes. Fallback: download from
+    `https://www.gyan.dev/ffmpeg/builds/`, unzip to `C:\ffmpeg\`, and add
+    `C:\ffmpeg\bin` to user `PATH`.
+  - **macOS**: `brew install ffmpeg`.
+  - **Linux**: `sudo apt install ffmpeg` (or distro equivalent).
 
 ### 1b. Fresh clone
 
