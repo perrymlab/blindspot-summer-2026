@@ -1,39 +1,50 @@
 # Required Downloads
 
-This document lists external data and model artifacts needed for the project. Do not commit downloaded datasets, model weights, videos, or raw tracker outputs to git.
+This document lists external data and model artifacts needed for the project. Do not commit datasets, model weights, videos, or raw tracker outputs to git.
 
-## CityFlowV2 / AI City 2022 Track 1
+## Intersection Footage (`blindspot_data`)
 
-Use the official AI City Challenge page:
+The project runs on locally captured multi-camera intersection footage,
+**not** the public CityFlowV2 / AI City Challenge dataset. Sabrina is the
+source of truth for the raw videos; ask her how to obtain or sync them onto
+your machine.
 
-- `https://www.aicitychallenge.org/2022-track1-download/`
+Once you have the raw captures, the project tooling expects them arranged
+on disk in this layout (the layout itself is borrowed from CityFlowV2 so
+that future external data could plug in without changing the code):
 
-Direct file link from the official page:
+```
+<data root>/
+    S01/c001/vdo.mp4
+    S01/c002/vdo.mp4
+    S01/c003/vdo.mp4
+    S02/...
+    ...
+```
 
-- `https://drive.google.com/file/d/13wNJpS_Oaoe-7y5Dzexg_Ol7bKu1OWuC/view?usp=sharing`
+Default data root:
 
-Dataset name:
+- `~/blindspot_data` on macOS/Linux
+- `C:\Users\<you>\blindspot_data` on Windows
+- override with the `BLINDSPOT_DATA_ROOT` environment variable
 
-- `AICity22_Track1_MTMC_Tracking.zip`
+Workflow:
 
-Project use:
-
-- CityFlowV2 multi-camera tracking data.
-- Schedule target: Scenario S01 first, then S02/S03 for scalability.
-
-License note:
-
-- The AI City page states that clicking the download link means accepting the data license agreement.
-
-After download:
-
-1. Extract the dataset outside the git repository.
-2. Record the local path in an untracked copy of `docs/setup/LOCAL_PATHS.md`.
-3. Run the readiness check with the chosen local path.
+1. Place or symlink the raw captures somewhere outside the git repository.
+2. If they did not already arrive in the layout above, normalize them with
+   `python scripts/organize_blindspot_data.py --apply` (dry-run first
+   without `--apply`).
+3. Pick a 2-5 minute trim window per scenario and record it in
+   `data/scenario_windows.csv`. See
+   `docs/data/SCENARIO_TRIMMING.md` for the full workflow.
+4. Run the readiness check:
 
 ```bash
-python scripts/check_research_readiness.py --cityflow-root <path-to-CityFlowV2> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
+python scripts/check_research_readiness.py --cityflow-root <data root> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
 ```
+
+The `--cityflow-root` flag name is historical and accepts any data root
+arranged in the layout above; it will be renamed in a future cleanup.
 
 ## BoT-SORT
 
