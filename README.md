@@ -29,7 +29,7 @@ Implemented:
 
 Not yet implemented:
 
-- CityFlowV2 ingestion.
+- Real-data ingestion of locally captured intersection footage end to end.
 - Merge from BoT-SORT detection-level embedding exports to tracker/global IDs.
 - Tracking metrics such as IDF1, HOTA, MOTA, and IDS from real tracker output.
 - Publication-quality plots.
@@ -74,7 +74,7 @@ Use `prime_mtmc.data.EmbeddingTable.from_csv` to load exported embeddings.
 
 ## Next Engineering Step
 
-Set up BoT-SORT runtime dependencies and weights, download/organize CityFlowV2 S01, then export clean and poisoned per-camera embeddings with the patched BoT-SORT flags described in `docs/botsort-integration/BOTSORT_INTEGRATION.md`.
+Set up BoT-SORT runtime dependencies and weights, organize the locally captured intersection footage into `~/blindspot_data/S0N/c00K/vdo.mp4` and trim it per `docs/data/SCENARIO_TRIMMING.md`, then export clean and poisoned per-camera embeddings with the patched BoT-SORT flags described in `docs/botsort-integration/BOTSORT_INTEGRATION.md`.
 
 ## BoT-SORT Clone
 
