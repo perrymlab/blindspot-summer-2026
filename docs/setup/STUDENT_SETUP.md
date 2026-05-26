@@ -26,6 +26,66 @@ python scripts/setup_repo.py
 
 ---
 
+## First Time Only — Set Up GitHub Credentials
+
+Cloning a public repo does not need credentials, but the first `git push` you
+run will. Set this up before you start writing code so it does not surprise
+you mid-task.
+
+### Stamp your commits as you
+
+So your work shows up under your GitHub account on the PR page. Run these
+inside the cloned repo (they apply to this repo only, not your other
+projects):
+
+```bash
+git config user.name "Your Name"
+git config user.email "<your-noreply-email>"
+```
+
+For `<your-noreply-email>`:
+
+1. Sign in to `https://github.com/settings/emails` as your GitHub account.
+2. Tick **Keep my email addresses private**.
+3. Copy the line that looks like
+   `12345678+yourusername@users.noreply.github.com` and paste it as the
+   value above.
+
+Verify:
+
+```bash
+git config user.name
+git config user.email
+```
+
+### Authenticate the first push
+
+When `git push` asks for credentials the first time, use a **Personal Access
+Token (PAT)**. Do **not** paste your GitHub password — GitHub disabled
+password authentication for git operations.
+
+1. Go to `https://github.com/settings/tokens` signed in as the same account.
+2. Click **Generate new token** -> **Fine-grained tokens**.
+3. Name: `blindspot-summer-2026`.
+4. Expiration: 90 days.
+5. Repository access: **Only select repositories** -> pick
+   `perrymlab/blindspot-summer-2026`.
+6. Permissions -> Repository: **Contents: Read and write** and
+   **Pull requests: Read and write**. Leave the rest at their defaults.
+7. Click **Generate token** and copy the token immediately. You cannot view
+   it again after closing the page.
+8. When git prompts for **username**, type your GitHub username. When it
+   prompts for **password**, paste the token.
+
+Your OS credential manager (Windows Credential Manager, macOS Keychain,
+Linux keyring) saves the token after the first successful push, so you will
+not be prompted again on this machine for this repo.
+
+If credentials misbehave, ask Sabrina before retrying. **Never** paste the
+token into commits, chat messages, or files in this repo.
+
+---
+
 > **Run this every session:** Before you write a single line, pull. Before you close your laptop, push.
 
 ---
