@@ -67,7 +67,7 @@ git config user.email
 
 ## 5. Run The Student Setup
 
-Use the Week 1 smaller setup path. This workflow test does not clone BoT-SORT and does not use CityFlowV2, model weights, videos, raw tracker outputs, or GPU compute.
+Use the Week 1 smaller setup path. This workflow test does not clone BoT-SORT and does not use any video data, model weights, raw tracker outputs, or GPU compute.
 
 The setup script creates a local `.venv`. After it finishes, run the smoke test and pytest through that virtual environment's Python executable. The path to that executable differs by operating system:
 
