@@ -1,0 +1,20 @@
+# PHANTOM — Shared Bibliography
+
+**PHANTOM: Poisoning and Detection of Hidden Embedding Attacks in Multi-Camera Object Tracking**  -(Discuss this name week 3)
+P.R.I.M.E. Research Experience · blindspot-summer-2026 
+
+## Seed Papers — Weeks 1 and 2
+
+[1] A. E. Cinà, K. Grosse, A. Demontis, S. Vascon, W. Zellinger, B. A. Moser, A. Mellor, F. Roli, M. Pelillo, and B. Biggio, "Wild Patterns Reloaded: A Survey of Machine Learning Security against Training Data Poisoning," *ACM Computing Surveys*, vol. 55, no. 13s, pp. 1–39, Jul. 2023. [Online]. Available: https://arxiv.org/abs/2205.01992  
+
+[2] Y. Zhang, P. Sun, Y. Jiang, D. Yu, F. Yuan, H. Luo, W. Liu, and X. Wang, "ByteTrack: Multi-Object Tracking by Associating Every Detection Box," in *Proc. European Conference on Computer Vision (ECCV)*, Tel Aviv, Israel, 2022, pp. 1–17. [Online]. Available: https://arxiv.org/abs/2110.06864  
+
+[3] T. Gu, B. Dolan-Gavitt, and S. Garg, "BadNets: Evaluating Backdooring Attacks on Deep Neural Networks," *IEEE Access*, vol. 7, pp. 47230–47244, 2019. [Online]. Available: https://arxiv.org/abs/1708.06733  
+
+[4] Q. Chu, W. Ouyang, H. Li, X. Wang, B. Liu, and N. Yu, "Blinding and Blurring the Multi-Object Tracker with Adversarial Perturbations," *Neural Networks*, vol. 175, p. 106248, 2024. [Online]. Available: https://doi.org/10.1016/j.neunet.2024.106248  
+
+
+## Student-Found Papers
+
+
+Last Updated [May 28, 2026]
