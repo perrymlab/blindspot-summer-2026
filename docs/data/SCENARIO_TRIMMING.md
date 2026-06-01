@@ -189,7 +189,7 @@ glance that the anchor vehicle named in `anchor_notes` really is present.
 2. Fill in one or more rows of `data/scenario_windows.csv`.
 3. Run the quicklook script and attach a couple of the generated PNGs to the
    PR description.
-4. Request review from Sabrina. She approves the window choices by reading
+4. Request review from Dr. Perry. She approves the window choices by reading
    the manifest diff and the composite images, without needing the videos.
 5. After merge, anyone with the raw footage in `~/blindspot_data/` can
    reproduce the trims with `python scripts/trim_scenarios.py --apply`.
