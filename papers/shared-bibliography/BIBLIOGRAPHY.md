@@ -18,7 +18,7 @@ P.R.I.M.E. Research Experience · blindspot-summer-2026
 
 [5] Woo, S., Park, K., Shin, I., Kim, M., & Kweon, I. S. (2024). MTMMC: a large-scale real-world multi-modal camera tracking benchmark. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (pp. 22335-22346).
 
-[6]
+[6] Wang, X., Li, S., Liu, M., Wang, Y., & Roy-Chowdhury, A. K. (2021). Multi-expert adversarial attack detection in person re-identification using context inconsistency. In Proceedings of the IEEE/CVF international conference on computer vision (pp. 15097-15107).
 
 
-Last Updated [May 28, 2026]
+Last Updated [June 8, 2026]
