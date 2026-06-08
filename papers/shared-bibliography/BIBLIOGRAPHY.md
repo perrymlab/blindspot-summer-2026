@@ -20,5 +20,10 @@ P.R.I.M.E. Research Experience · blindspot-summer-2026
 
 [6] Wang, X., Li, S., Liu, M., Wang, Y., & Roy-Chowdhury, A. K. (2021). Multi-expert adversarial attack detection in person re-identification using context inconsistency. In Proceedings of the IEEE/CVF international conference on computer vision (pp. 15097-15107).
 
+[7] Yan, X., Chen, X., Jiang, Y., Xia, S. T., Zhao, Y., & Zheng, F. (2020, May). Hijacking tracker: A powerful adversarial attack on visual tracking. In ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) (pp. 2897-2901). IEEE.
+
+
+[8] Ghorbani, V., Gostar, A. K., Tari, Z., Sohrabi, N., Ghorbani, A., & Hoseinnezhad, R. Robust filtering for multi-object tracking against stealthy measurement-oriented adversarial attacks.(2025).
+
 
 Last Updated [June 8, 2026]
