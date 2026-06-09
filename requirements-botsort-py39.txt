@@ -4,7 +4,7 @@
 # (vendor/BoT-SORT, branch prime-reid-poison-export) end to end and export
 # per-detection ReID embeddings. STUDENTS DO NOT NEED THIS -- they consume the
 # exported CSVs with the project's own .venv (Python 3.12). See
-# docs/experiments/BOTSORT_GPU_RUNBOOK.md for the full researcher workflow.
+# docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md for the full researcher workflow.
 #
 # -------------------------------------------------------------------------
 # REQUIREMENTS BEFORE INSTALLING THIS FILE
