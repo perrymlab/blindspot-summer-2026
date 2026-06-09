@@ -34,9 +34,9 @@ The local checkout has been patched and committed on branch:
 
 Patch commit:
 
-`e9dafea0ad85f8bbfb6ad6e7626aa3e31a511285`
+`a7e591afd307a1255bcbf9018e50740b022441b6`
 
-That branch adds PRIME flags in `tools/demo.py` and `tools/mc_demo.py`, plus embedding poisoning/export support in `fast_reid/fast_reid_interfece.py`.
+That branch adds PRIME flags in `tools/demo.py` and `tools/mc_demo.py`, plus embedding poisoning/export support in `fast_reid/fast_reid_interfece.py`. It also carries the compatibility fixes required to run the 2021-era FastReID code on a modern stack: `fast_reid/fastreid/data/build.py` replaces the removed `torch._six.string_classes` import with `string_classes = str` (PyTorch 2.x), and `tools/demo.py` replaces the interactive `cv2.waitKey(1)` call with `ch = -1` so the demo runs under headless OpenCV on a GPU server with no display. The PRIME code paths require **Python 3.9** (FastReID imports `collections.Mapping`, removed in Python 3.10).
 
 In a fresh fork/clone of this repository, run `python scripts/setup_repo.py` to recreate the local BoT-SORT checkout and apply the tracked patch from `patches/`.
 
