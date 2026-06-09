@@ -1,5 +1,10 @@
 # BoT-SORT ReID Poisoning Hook
 
+> **Running the tracker?** See the step-by-step
+> [BoT-SORT GPU Runbook](BOTSORT_GPU_RUNBOOK.md) for the full researcher
+> workflow (conda Python 3.9 env, dependency install, weights, and the exact
+> demo commands). This document describes the hook design and contracts.
+
 This project treats embedding-space poisoning as an inference-time intervention on ReID feature vectors. In the upstream BoT-SORT repository, the expected hook point is:
 
 `fast_reid/fast_reid_interfece.py`
