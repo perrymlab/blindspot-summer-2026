@@ -2,11 +2,17 @@
 
 Source of truth: `docs/schedules/PRIME_Schedule_new_revised.pdf`.
 
-Goal: run BoT-SORT-ReID on clean CityFlowV2 Scenario S01 and log IDF1, HOTA, MOTA, and IDS.
+Goal: run BoT-SORT-ReID on clean local `blindspot_data` Scenario S01 and log IDF1, HOTA, MOTA, and IDS.
+
+> **Who does what:** the **researcher** runs BoT-SORT on a GPU box (see
+> `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`) and exports embedding
+> CSVs. **Students** analyze those CSVs (see
+> `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`) -- students do not run
+> BoT-SORT.
 
 ## Researcher Prerequisites
 
-- CityFlowV2 S01 path confirmed in local notes.
+- Local `blindspot_data` S01 path confirmed in local notes.
 - BoT-SORT checkout exists and is on `prime-reid-poison-export`.
 - PyTorch works on the target machine.
 - Object detector weights path confirmed.
@@ -15,12 +21,16 @@ Goal: run BoT-SORT-ReID on clean CityFlowV2 Scenario S01 and log IDF1, HOTA, MOT
 
 ## Student Task
 
+Students consume the embedding CSVs the researcher exports; they do not run
+BoT-SORT. Full steps are in `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`.
+
 1. Pull latest `main`.
 2. Create a branch for Week 3 baseline notes.
 3. Copy `docs/templates/RUN_LOG_TEMPLATE.md` into this folder with a dated filename.
-4. Run BoT-SORT-ReID on S01 clean cameras.
-5. Record command, weights, output paths, and metric output.
-6. Add a small summary to `results/week03/` only after Sabrina approves it.
+4. Get the S01 clean embedding CSV(s) from the researcher.
+5. Analyze them with `scripts/analyze_embedding_export.py` (see the student guide).
+6. Record input CSV, command, output paths, and the metric output.
+7. Add a small summary to `results/week03/` only after Sabrina approves it.
 
 ## Required Result
 
