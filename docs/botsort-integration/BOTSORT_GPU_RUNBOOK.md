@@ -111,38 +111,43 @@ py3.9/torch-2.x/headless compatibility fixes (the `torch._six` import and the
 If the patch does not apply, the script hard-fails with a clear message --
 do not proceed past it.
 
-Place the weights where the demo expects them:
+Place the weights where the demo expects them. This project uses the **VeRi
+vehicle** ReID model (the footage is vehicles, not people):
 
 ```
-vendor/BoT-SORT/pretrained/bytetrack_x_mot17.pth.tar
-vendor/BoT-SORT/pretrained/mot17_sbs_S50.pth
+vendor/BoT-SORT/pretrained/bytetrack_x_mot17.pth.tar   # YOLOX detector
+vendor/BoT-SORT/pretrained/veri_sbs_R50-ibn.pth        # VeRi vehicle ReID
 ```
+
+See `docs/setup/DOWNLOADS.md` for the download links.
 
 ---
 
 ## 6. Run the tracker and export embeddings
 
-The demo **requires** the YOLOX exp file (`-f`) and detector checkpoint (`-c`).
-Omitting them produces a confusing "exp file" error; this is why the example
-below is the full command, not the abbreviated form.
+The demo **requires** the YOLOX exp file (`-f`) and detector checkpoint
+(`--ckpt`). Omitting them produces a confusing "exp file" error; this is why the
+example below is the full command, not the abbreviated form.
 
 Run commands from inside `vendor/BoT-SORT` so the relative `pretrained/` and
 `fast_reid/` paths resolve.
+
+The commands below are the exact verified-working invocations from the GPU box.
 
 ### Clean run (per camera)
 
 ```bash
 cd vendor/BoT-SORT
 python tools/demo.py video \
-  --path /path/to/blindspot_data/S01/c001/vdo.mp4 \
+  --path /root/blindspot_data/S01/c001/vdo.mp4 \
   -f yolox/exps/example/mot/yolox_x_mix_det.py \
-  -c pretrained/bytetrack_x_mot17.pth.tar \
+  --ckpt pretrained/bytetrack_x_mot17.pth.tar \
   --with-reid \
-  --fast-reid-config fast_reid/configs/MOT17/sbs_S50.yml \
-  --fast-reid-weights pretrained/mot17_sbs_S50.pth \
-  --fp16 --fuse \
+  --fast-reid-config fast_reid/configs/VeRi/sbs_R50-ibn.yml \
+  --fast-reid-weights pretrained/veri_sbs_R50-ibn.pth \
   --prime-camera-id c01 \
-  --prime-export-embeddings ../../runs/botsort/clean_c01.csv
+  --prime-export-embeddings ../../runs/botsort/clean_c01.csv \
+  --save_result
 ```
 
 ### Poisoned run
@@ -151,26 +156,29 @@ Add the poison flags; keep a separate output path:
 
 ```bash
 python tools/demo.py video \
-  --path /path/to/blindspot_data/S01/c001/vdo.mp4 \
+  --path /root/blindspot_data/S01/c001/vdo.mp4 \
   -f yolox/exps/example/mot/yolox_x_mix_det.py \
-  -c pretrained/bytetrack_x_mot17.pth.tar \
+  --ckpt pretrained/bytetrack_x_mot17.pth.tar \
   --with-reid \
-  --fast-reid-config fast_reid/configs/MOT17/sbs_S50.yml \
-  --fast-reid-weights pretrained/mot17_sbs_S50.pth \
-  --fp16 --fuse \
+  --fast-reid-config fast_reid/configs/VeRi/sbs_R50-ibn.yml \
+  --fast-reid-weights pretrained/veri_sbs_R50-ibn.pth \
   --prime-camera-id c01 \
   --prime-poison-cameras c01,c02 \
   --prime-poison-epsilon 0.5 \
   --prime-poison-seed 7 \
-  --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv
+  --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv \
+  --save_result
 ```
 
 Notes:
 - The box is usually **headless** (no display). The patch replaces the demo's
   `cv2.waitKey(1)` GUI call, so it runs without an X server. If you hit any
   other `cv2.imshow`/GUI error, you are on an unpatched checkout -- redo step 5.
-- `--save_result` writes an annotated video and is optional. The embedding CSV
-  is produced by `--prime-export-embeddings` regardless.
+- `--save_result` writes an annotated video. The embedding CSV is produced by
+  `--prime-export-embeddings` regardless; drop `--save_result` if you only need
+  the CSV.
+- `--fp16`/`--fuse` are optional speed flags and were **not** used in the
+  verified run; add them only if you confirm they don't change the output.
 - Repeat per camera (`c001`, `c002`, `c003`) and per scenario, changing
   `--path`, `--prime-camera-id`, and the output CSV name.
 
