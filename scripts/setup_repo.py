@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BOTSORT_URL = "https://github.com/NirAharon/BoT-SORT.git"
 DEFAULT_BOTSORT_PATH = ROOT / "vendor" / "BoT-SORT"
 PATCH_PATH = ROOT / "patches" / "0001-Add-PRIME-ReID-poison-and-export-hooks.patch"
+# Upstream BoT-SORT moves; the PRIME patch was generated against this exact
+# commit. Pinning it keeps `git apply` deterministic instead of tracking a
+# moving origin/main that can drift and break the patch.
+DEFAULT_BOTSORT_COMMIT = "251985436d6712aaf682aaaf5f71edb4987224bd"
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,8 +67,49 @@ def setup_botsort(bot_sort_url: str, bot_sort_path: Path, force: bool) -> None:
 
     bot_sort_path.parent.mkdir(parents=True, exist_ok=True)
     run(["git", "clone", bot_sort_url, str(bot_sort_path)])
-    run(["git", "-C", str(bot_sort_path), "checkout", "-B", "prime-reid-poison-export", "origin/main"])
-    run(["git", "-C", str(bot_sort_path), "am", str(PATCH_PATH)])
+    run([
+        "git", "-C", str(bot_sort_path),
+        "checkout", "-B", "prime-reid-poison-export", DEFAULT_BOTSORT_COMMIT,
+    ])
+    apply_patch(bot_sort_path)
+
+
+def apply_patch(bot_sort_path: Path) -> None:
+    """Apply the PRIME patch to the BoT-SORT checkout.
+
+    Uses ``git apply`` rather than ``git am`` on purpose: ``git am`` creates a
+    commit and therefore requires ``user.name``/``user.email`` to be configured,
+    which is often not the case on a fresh GPU box. When that config is missing
+    ``git am`` fails *after* the branch is created, leaving a branch named
+    ``prime-reid-poison-export`` with no patch applied -- a silent, confusing
+    failure. ``git apply`` needs no identity and we hard-fail loudly if it does
+    not apply cleanly.
+    """
+    if not PATCH_PATH.exists():
+        raise SystemExit(f"ERROR: PRIME patch not found at {PATCH_PATH}")
+
+    print("+", "git", "-C", str(bot_sort_path), "apply", "--check", str(PATCH_PATH))
+    check = subprocess.run(
+        ["git", "-C", str(bot_sort_path), "apply", "--check", str(PATCH_PATH)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if check.returncode != 0:
+        raise SystemExit(
+            "ERROR: the PRIME patch did not apply cleanly to the BoT-SORT checkout.\n"
+            f"  patch:    {PATCH_PATH}\n"
+            f"  checkout: {bot_sort_path}\n"
+            f"  pinned commit: {DEFAULT_BOTSORT_COMMIT}\n"
+            "This usually means upstream BoT-SORT drifted from the pinned commit, "
+            "or the checkout already has the patch applied. Re-run with --force to "
+            "recreate the checkout from the pinned commit.\n"
+            "git apply --check output:\n"
+            f"{check.stdout.strip()}"
+        )
+
+    run(["git", "-C", str(bot_sort_path), "apply", str(PATCH_PATH)])
+    print("Applied PRIME patch to BoT-SORT via git apply.")
 
 
 def main() -> None:
