@@ -1,0 +1,64 @@
+# BoT-SORT / FastReID runtime dependencies for the PRIME project (RESEARCHER ONLY)
+#
+# This is the dependency set required to run the patched BoT-SORT tracker
+# (vendor/BoT-SORT, branch prime-reid-poison-export) end to end and export
+# per-detection ReID embeddings. STUDENTS DO NOT NEED THIS -- they consume the
+# exported CSVs with the project's own .venv (Python 3.12). See
+# docs/experiments/BOTSORT_GPU_RUNBOOK.md for the full researcher workflow.
+#
+# -------------------------------------------------------------------------
+# REQUIREMENTS BEFORE INSTALLING THIS FILE
+# -------------------------------------------------------------------------
+# 1. Python 3.9 -- NOT 3.10+.
+#    FastReID imports `collections.Mapping`, which was removed in Python 3.10.
+#    Create an isolated env:
+#        conda create -y -n botsort python=3.9
+#        conda activate botsort
+#
+# 2. PyTorch is installed SEPARATELY (it is intentionally NOT listed below).
+#    Its wheels come from a CUDA-specific index URL, which -- if put in this
+#    file -- would override PyPI for every other package. Install it first:
+#        pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#    Match cu### to the box's CUDA (`nvidia-smi`). cu121 wheels are verified
+#    working on an RTX 4090 / driver 570 / CUDA 12.8 box (newer drivers are
+#    backward compatible with cu121 wheels).
+#
+# Then:  pip install -r requirements-botsort-py39.txt
+# -------------------------------------------------------------------------
+#
+# VERSION CONSTRAINTS
+# numpy and scipy MUST stay below these ceilings. The 2021-era FastReID code
+# is incompatible with numpy>=1.24 (removed np.float/np.int aliases) and
+# scipy>=1.11 API changes. The remaining packages install fine unpinned on
+# Python 3.9. To produce a fully pinned lockfile, run `pip freeze` inside the
+# working `botsort` env after a successful run and commit the result.
+
+numpy<1.24
+scipy<1.11
+
+# Core tracker / detector deps
+opencv-python-headless
+loguru
+yacs
+lap
+cython
+cython_bbox
+tabulate
+thop
+motmetrics
+filterpy
+easydict
+pyyaml
+pycocotools
+termcolor
+
+# FastReID deps (bundled under vendor/BoT-SORT/fast_reid, undocumented upstream)
+scikit-learn
+tensorboard
+Pillow
+tqdm
+ninja
+prettytable
+six
+gdown
+faiss-cpu
