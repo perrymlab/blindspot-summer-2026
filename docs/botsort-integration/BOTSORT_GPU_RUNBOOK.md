@@ -47,6 +47,17 @@ removed in Python 3.10+. Using 3.10/3.11/3.12 fails at import time.
 ```bash
 conda create -y -n botsort python=3.9
 conda activate botsort
+python --version   # must say 3.9.x
+```
+
+If `python --version` still shows 3.10+ after activating, another env (often
+the project `.venv`) is shadowing conda on `PATH`. Leave it first, then
+re-activate:
+
+```bash
+deactivate         # leave the .venv if it is active
+conda activate botsort
+which python        # should be .../venv/botsort/bin/python
 ```
 
 ---
@@ -58,11 +69,13 @@ index URL. Do **not** put torch in the requirements file -- that index would
 override PyPI for every other package.
 
 ```bash
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
 ```
 
-Match `cu###` to the box's CUDA from `nvidia-smi`. `cu121` wheels work on
-newer drivers too (verified on CUDA 12.8). Sanity check:
+Pin these **exact** versions. A bare `pip install torch torchvision` now
+resolves to torch 2.11/cu128, which publishes **no Python 3.9 wheels** and will
+fail or pull an incompatible build. `cu121` wheels are verified working on the
+box's newer driver/CUDA (CUDA wheels are forward compatible). Sanity check:
 
 ```bash
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
@@ -204,3 +217,5 @@ Students then analyze the CSVs with `scripts/analyze_embedding_export.py`.
 | "exp file" / detector error | missing `-f`/`-c` | Pass both, as in step 6 |
 | `git am` fails: "empty ident" / "no email" | no git identity for `git am` | `setup_repo.py` now uses `git apply` (no identity needed) |
 | Patch did not apply | upstream drift / already applied | Re-run `setup_repo.py --force` |
+| `conda activate botsort` but `python --version` is 3.12 | the `.venv` is shadowing conda on `PATH` | `deactivate` the `.venv`, then `conda activate botsort` |
+| `pip install torch` fails / no matching distribution | torch 2.11/cu128 has no py3.9 wheels | pin `torch==2.5.1 torchvision==0.20.1` (cu121) |
