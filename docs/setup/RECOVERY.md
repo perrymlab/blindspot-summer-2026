@@ -21,11 +21,17 @@ command regenerates them.
 
 ## Fresh-instance recovery checklist
 
-1. Clone the repo:
+1. Clone the repo. On a cloud GPU box, clone into `/workspace` (the default
+   working directory and, if you mounted one, the persistent volume) so the
+   paths below and in the runbook line up:
    ```bash
+   cd /workspace
    git clone https://github.com/perrymlab/blindspot-summer-2026.git
    cd blindspot-summer-2026
    ```
+   The rest of this doc assumes the repo lives at
+   `/workspace/blindspot-summer-2026`. On a local machine, any directory works
+   -- just adjust the paths accordingly.
 2. Create the Python 3.9 env (BoT-SORT/FastReID require 3.9):
    ```bash
    conda create -y -n botsort python=3.9
