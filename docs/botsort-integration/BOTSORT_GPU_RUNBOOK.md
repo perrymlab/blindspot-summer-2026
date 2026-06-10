@@ -231,13 +231,20 @@ The box is **headless**, so view the video off-box one of two ways:
 
   Then open it in VLC / any player.
 
-- **In a Jupyter session on the box** (if the rental provides one): browse to
-  the folder and download, or display inline:
+- **In a Jupyter session on the box** (if the rental provides one): the demo
+  writes with OpenCV's `mp4v` codec, which browsers **cannot** play inline, and
+  `Video(path)` does not embed by default -- so a naive `Video(path)` shows a
+  blank/black player. Transcode to H.264 first, then embed:
 
+  ```bash
+  ffmpeg -i vdo.mp4 -vcodec libx264 -pix_fmt yuv420p vdo_h264.mp4
+  ```
   ```python
   from IPython.display import Video
-  Video("vendor/BoT-SORT/YOLOX_outputs/yolox_x_mix_det/track_vis/<timestamp>/vdo.mp4")
+  Video("vdo_h264.mp4", embed=True)
   ```
+
+  (Downloading the original and playing in VLC also works -- VLC handles `mp4v`.)
 
 Students do not get this video; they redraw boxes from the exported CSV with
 `scripts/visualize_boxes.py` (see `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`).
