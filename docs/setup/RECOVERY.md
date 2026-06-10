@@ -89,6 +89,8 @@ command regenerates them.
   ```bash
   scp root@<box-host>:/workspace/blindspot-summer-2026/runs/botsort/*.csv .
   ```
+- **Sync exports off the box** (and optionally version them in the repo via Git
+  LFS or a Release) -- see `docs/data/SYNCING_RUN_OUTPUTS.md`.
 - **Commit run logs, not data.** Record each run's metadata
   (`docs/templates/RUN_LOG_TEMPLATE.md`: command, weights, scenario, epsilon,
   seed, metrics) and commit it. Even if a CSV is lost, the provenance and the
