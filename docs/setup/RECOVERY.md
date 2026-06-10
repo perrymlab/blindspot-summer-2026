@@ -63,7 +63,16 @@ command regenerates them.
 6. Re-fetch the off-git artifacts:
    - Weights into `vendor/BoT-SORT/pretrained/` (`bytetrack_x_mot17.pth.tar`,
      `veri_sbs_R50-ibn.pth`) -- see `docs/setup/DOWNLOADS.md`.
-   - Footage into your data root (`blindspot_data/`) -- re-sync from Sabrina.
+   - Footage into your data root (`$BLINDSPOT_DATA_ROOT` or `~/blindspot_data`)
+     -- re-sync from Sabrina. If the raw captures are in the original
+     `video N/Intersection-Camera-K_*.mp4` layout, normalize them to the
+     project's `S0N/c00K/vdo.mp4` layout (dry-run first, then `--apply`):
+     ```bash
+     python scripts/organize_blindspot_data.py            # dry run
+     python scripts/organize_blindspot_data.py --apply
+     ```
+     See `docs/setup/DOWNLOADS.md` and `docs/data/SCENARIO_TRIMMING.md` for the
+     layout and trimming details.
 7. Confirm readiness:
    ```bash
    python scripts/check_research_readiness.py --detector-weights <...> --reid-weights <...>
