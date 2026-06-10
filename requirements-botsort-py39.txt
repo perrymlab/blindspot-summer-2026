@@ -1,0 +1,68 @@
+# BoT-SORT / FastReID runtime dependencies for the PRIME project (RESEARCHER ONLY)
+#
+# This is the dependency set required to run the patched BoT-SORT tracker
+# (vendor/BoT-SORT, branch prime-reid-poison-export) end to end and export
+# per-detection ReID embeddings. STUDENTS DO NOT NEED THIS -- they consume the
+# exported CSVs with the project's own .venv (Python 3.12). See
+# docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md for the full researcher workflow.
+#
+# -------------------------------------------------------------------------
+# REQUIREMENTS BEFORE INSTALLING THIS FILE
+# -------------------------------------------------------------------------
+# 1. Python 3.9 -- NOT 3.10+.
+#    FastReID imports `collections.Mapping`, which was removed in Python 3.10.
+#    Create an isolated env:
+#        conda create -y -n botsort python=3.9
+#        conda activate botsort
+#
+# 2. PyTorch is installed SEPARATELY (it is intentionally NOT listed below).
+#    Its wheels come from a CUDA-specific index URL, which -- if put in this
+#    file -- would override PyPI for every other package. Install these EXACT
+#    versions first (do NOT use a bare `pip install torch` -- newer torch such
+#    as 2.11/cu128 publishes NO Python 3.9 wheels and pip will fail or pull an
+#    incompatible build):
+#        pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
+#    cu121 wheels are verified working on the box's newer driver/CUDA (CUDA
+#    wheels are forward compatible with newer drivers).
+#
+# Then:  pip install -r requirements-botsort-py39.txt
+# -------------------------------------------------------------------------
+#
+# These pins are the exact versions captured with `pip freeze` from the
+# verified-working Python 3.9 `botsort` env (torch 2.5.1+cu121). numpy<1.24 and
+# scipy<1.11 are not just a precaution -- the working env runs numpy 1.23.5 /
+# scipy 1.10.1, and the 2021-era FastReID code breaks on the newer APIs.
+# torch's own transitive deps (nvidia-*-cu12, triton) are intentionally omitted
+# here; they install automatically with the torch step above.
+
+numpy==1.23.5
+scipy==1.10.1
+
+# Core tracker / detector deps
+opencv-python-headless==4.11.0.86
+loguru==0.7.3
+yacs==0.1.8
+lap==0.5.13
+Cython==3.2.5
+cython_bbox==0.1.5
+tabulate==0.9.0
+thop==0.1.1.post2209072238
+motmetrics==1.4.0
+filterpy==1.4.5
+easydict==1.13
+PyYAML==6.0.3
+pycocotools==2.0.11
+termcolor==3.1.0
+pandas==2.3.3
+matplotlib==3.9.4
+
+# FastReID deps (bundled under vendor/BoT-SORT/fast_reid, undocumented upstream)
+scikit-learn==1.6.1
+tensorboard==2.20.0
+Pillow==11.3.0
+tqdm==4.68.2
+ninja==1.13.0
+prettytable==3.16.0
+six==1.17.0
+gdown==5.2.2
+faiss-cpu==1.8.0.post1
