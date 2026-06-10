@@ -203,7 +203,42 @@ sed -n '2p' ../../runs/botsort/clean_c01.csv | awk -F',' '{print NF" cols; "spli
 
 ---
 
-## 8. Hand off to students
+## 8. View the annotated results (boxes + track ids)
+
+When you pass `--save_result`, the demo writes an annotated video with the
+bounding boxes and track ids drawn on each frame. YOLOX/BoT-SORT puts it under
+`YOLOX_outputs/<exp-name>/track_vis/<timestamp>/`. Since you run from inside
+`vendor/BoT-SORT`, locate the newest one with:
+
+```bash
+find YOLOX_outputs -name '*.mp4' -printf '%T+ %p\n' | sort | tail
+# e.g. YOLOX_outputs/yolox_x_mix_det/track_vis/2026_06_09_18_05_12/vdo.mp4
+```
+
+The box is **headless**, so view the video off-box one of two ways:
+
+- **Download and play locally** (from your own machine):
+
+  ```bash
+  scp root@<box-host>:/workspace/blindspot-summer-2026/vendor/BoT-SORT/YOLOX_outputs/yolox_x_mix_det/track_vis/<timestamp>/vdo.mp4 .
+  ```
+
+  Then open it in VLC / any player.
+
+- **In a Jupyter session on the box** (if the rental provides one): browse to
+  the folder and download, or display inline:
+
+  ```python
+  from IPython.display import Video
+  Video("vendor/BoT-SORT/YOLOX_outputs/yolox_x_mix_det/track_vis/<timestamp>/vdo.mp4")
+  ```
+
+Students do not get this video; they redraw boxes from the exported CSV with
+`scripts/visualize_boxes.py` (see `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`).
+
+---
+
+## 9. Hand off to students
 
 Copy the CSVs out of `runs/botsort/` to wherever students retrieve results.
 Do **not** commit CSVs, weights, or videos to git. Record each run's metadata
