@@ -1,5 +1,10 @@
 # BoT-SORT ReID Poisoning Hook
 
+> **Running the tracker?** See the step-by-step
+> [BoT-SORT GPU Runbook](BOTSORT_GPU_RUNBOOK.md) for the full researcher
+> workflow (conda Python 3.9 env, dependency install, weights, and the exact
+> demo commands). This document describes the hook design and contracts.
+
 This project treats embedding-space poisoning as an inference-time intervention on ReID feature vectors. In the upstream BoT-SORT repository, the expected hook point is:
 
 `fast_reid/fast_reid_interfece.py`
@@ -48,19 +53,13 @@ In a fresh fork/clone of this repository, run `python scripts/setup_repo.py` to 
 - `--prime-poison-seed 7`
 - `--prime-export-embeddings runs/botsort/c01_embeddings.csv`
 
-Example shape for a per-camera clean run:
+For the exact, verified-working clean and poisoned commands (with the required
+`-f`/`--ckpt` flags and the VeRi vehicle ReID config), see
+[BOTSORT_GPU_RUNBOOK.md](BOTSORT_GPU_RUNBOOK.md#6-run-the-tracker-and-export-embeddings).
+The `--prime-*` flags layer on top of that base command:
 
-```bash
-cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv
-```
-
-Example shape for a poisoned run:
-
-```bash
-cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5 --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv
-```
+- Clean export: `--prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv`
+- Poisoned export: add `--prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5`
 
 ## Required Run Log Fields
 
