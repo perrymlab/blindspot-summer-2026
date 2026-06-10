@@ -73,16 +73,37 @@ The local checkout is ignored by git. The PRIME patch is tracked in:
 
 Required for real BoT-SORT runs.
 
-BoT-SORT's demo examples use the ByteTrack/YOLOX MOT17 detector checkpoint:
+### Use the COCO YOLOX-x detector (vehicles)
 
-- `bytetrack_x_mot17.pth.tar`
-- `https://drive.google.com/file/d/1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5/view?usp=sharing`
+This project tracks **vehicles**. Use the COCO-pretrained YOLOX-x detector,
+which emits `car`/`motorcycle`/`bus`/`truck` boxes, and restrict it to those
+classes with the patched `--prime-classes` flag.
+
+- Weights: `yolox_x.pth`
+- `https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_x.pth`
+- Exp file (already in the checkout): `vendor/BoT-SORT/yolox/exps/default/yolox_x.py` (COCO, 80 classes)
+- COCO vehicle class ids: `2` car, `3` motorcycle, `5` bus, `7` truck → pass `--prime-classes 2,3,5,7`
 
 Expected local location:
 
-- `vendor/BoT-SORT/pretrained/bytetrack_x_mot17.pth.tar`
+- `vendor/BoT-SORT/pretrained/yolox_x.pth`
 
-Record the local path in:
+See the runbook for the full demo command:
+`docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`.
+
+### Why not the MOT17 detector
+
+BoT-SORT's demo examples use the ByteTrack/YOLOX **MOT17** checkpoint
+(`bytetrack_x_mot17.pth.tar`), which is a single-class **pedestrian** detector.
+On intersection vehicle footage it barely fires — a baseline run produced only
+~8 detections across 6000 frames — so the annotated video looked empty and the
+embedding export was nearly empty. It is the wrong detector for this project and
+should not be used for vehicle runs.
+
+- `bytetrack_x_mot17.pth.tar` (pedestrians — **do not use for vehicle runs**)
+- `https://drive.google.com/file/d/1P4mY0Yyd3PPTybgZkjMYhFri88nTmJX5/view?usp=sharing`
+
+Record the local detector path in:
 
 - `docs/setup/LOCAL_PATHS.md`
 

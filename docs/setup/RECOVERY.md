@@ -61,8 +61,8 @@ command regenerates them.
    the CSV-analysis workflow, which runs on a separate Python 3.10+ interpreter
    -- see `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`.)
 6. Re-fetch the off-git artifacts:
-   - Weights into `vendor/BoT-SORT/pretrained/` (`bytetrack_x_mot17.pth.tar`,
-     `veri_sbs_R50-ibn.pth`) -- see `docs/setup/DOWNLOADS.md`.
+   - Weights into `vendor/BoT-SORT/pretrained/` (`yolox_x.pth` COCO detector,
+     `veri_sbs_R50-ibn.pth` VeRi ReID) -- see `docs/setup/DOWNLOADS.md`.
    - Footage into your data root (`$BLINDSPOT_DATA_ROOT` or `~/blindspot_data`)
      -- re-sync from Sabrina. If the raw captures are in the original
      `video N/Intersection-Camera-K_*.mp4` layout, normalize them to the
