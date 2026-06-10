@@ -1,9 +1,9 @@
 ﻿scenario,start,duration_s,anchor_notes
-S01,0,150,red jeep co-visible across all cams ~00:54; ~30 vehicles co-visible during window
-S02,125,245,short bus co-visible across all cams ~02:38; ~50 vehicles co-visible during window
-S03,195,325,travel bus co-visible across all cams ~03:47; ~17 vehicles co-visible during window
-S04,447,574,dump truck co-visible across all cams ~07:56; ~28 vehicles co-visible during window
-S05,210,330,powder blue hatchback  co-visible across all cams ~04:01; ~30 vehicles co-visible during window
+S01,35,20,red jeep co-visible across all cams ~00:54; ~30 vehicles co-visible during window
+S02,150,20,short bus co-visible across all cams ~02:38; ~50 vehicles co-visible during window
+S03,215,20,travel bus co-visible across all cams ~03:47; ~17 vehicles co-visible during window
+S04,397,74,dump truck co-visible across all cams ~07:56; ~28 vehicles co-visible during window
+S05,191,51,powder blue hatchback  co-visible across all cams ~04:01; ~30 vehicles co-visible during window
 S06,120,240,yellow dump truck co-visible across all cams ~02:31; ~35 vehicles co-visible during window
 S07,360,480,green charger co-visible across all cams ~06:26; ~50 vehicles co-visible during window
 S08,80,200,yellow camaro co-visible across all cams ~01:51; ~35 vehicles co-visible during window
