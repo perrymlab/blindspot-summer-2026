@@ -40,11 +40,11 @@ Workflow:
 4. Run the readiness check:
 
 ```bash
-python scripts/check_research_readiness.py --cityflow-root <data root> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
+python scripts/check_research_readiness.py --data-root <data root> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
 ```
 
-The `--cityflow-root` flag name is historical and accepts any data root
-arranged in the layout above; it will be renamed in a future cleanup.
+Run this inside the researcher `botsort` conda env (Python 3.9). The old
+`--cityflow-root` flag still works as a deprecated alias for `--data-root`.
 
 ## BoT-SORT
 

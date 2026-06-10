@@ -25,14 +25,18 @@ def default_data_root() -> Path:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Check whether a local machine is ready for PRIME real-data runs."
+        description="Check whether a machine is ready for PRIME real-data BoT-SORT "
+        "runs. Run this inside the researcher 'botsort' conda env (Python 3.9)."
     )
     parser.add_argument(
+        "--data-root",
         "--cityflow-root",
+        dest="data_root",
         type=Path,
         default=default_data_root(),
         help="Dataset root containing scenario subfolders. "
-        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data.",
+        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data. "
+        "(--cityflow-root is a deprecated alias kept for backward compatibility.)",
     )
     parser.add_argument("--detector-weights", type=Path, default=None)
     parser.add_argument("--reid-weights", type=Path, default=None)
@@ -66,20 +70,33 @@ def check_command(command: list[str], cwd: Path = ROOT) -> tuple[bool, str]:
     return result.returncode == 0, detail
 
 
-def scenario_exists(cityflow_root: Path, scenario: str) -> bool:
+def scenario_exists(data_root: Path, scenario: str) -> bool:
     candidates = [
-        cityflow_root / scenario,
-        cityflow_root / scenario.lower(),
-        cityflow_root / scenario.upper(),
+        data_root / scenario,
+        data_root / scenario.lower(),
+        data_root / scenario.upper(),
     ]
     return any(candidate.exists() for candidate in candidates)
+
+
+def file_contains(path: Path, marker: str) -> bool:
+    """Return True if ``path`` exists and contains ``marker``."""
+    try:
+        return marker in path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return False
 
 
 def main() -> int:
     args = parse_args()
     failures = 0
 
-    failures += not check(sys.version_info >= (3, 10), "Python >= 3.10", sys.version.split()[0])
+    failures += not check(
+        sys.version_info[:2] == (3, 9),
+        "Python 3.9 (required by BoT-SORT/FastReID)",
+        f"{sys.version.split()[0]} - FastReID imports collections.Mapping, removed in 3.10; "
+        "run inside the 'botsort' conda env",
+    )
     failures += not check(shutil.which("git") is not None, "git executable available")
 
     package_ok, package_detail = check_command([sys.executable, "scripts/smoke_test.py"])
@@ -102,14 +119,28 @@ def main() -> int:
         hook_path = bot_sort_path / "fast_reid" / "fast_reid_interfece.py"
         failures += not check(hook_path.exists(), "BoT-SORT ReID hook file", str(hook_path))
 
+        # Existence is not enough: the unpatched upstream file has the same name.
+        # Verify the PRIME patch actually applied by looking for symbols/flags it adds.
+        demo_path = bot_sort_path / "tools" / "demo.py"
+        failures += not check(
+            file_contains(hook_path, "_export_prime_embeddings"),
+            "PRIME patch applied (ReID export hook)",
+            str(hook_path),
+        )
+        failures += not check(
+            file_contains(demo_path, "--prime-export-embeddings"),
+            "PRIME patch applied (demo flags)",
+            str(demo_path),
+        )
+
     failures += not check(
-        args.cityflow_root.exists(), "data root exists", str(args.cityflow_root)
+        args.data_root.exists(), "data root exists", str(args.data_root)
     )
     for scenario in [item.strip() for item in args.require_scenarios.split(",") if item.strip()]:
         failures += not check(
-            scenario_exists(args.cityflow_root, scenario),
+            scenario_exists(args.data_root, scenario),
             f"scenario {scenario}",
-            str(args.cityflow_root / scenario),
+            str(args.data_root / scenario),
         )
 
     if args.detector_weights is None:
