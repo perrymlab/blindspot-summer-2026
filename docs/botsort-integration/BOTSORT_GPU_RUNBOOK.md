@@ -50,14 +50,15 @@ conda activate botsort
 python --version   # must say 3.9.x
 ```
 
-If `python --version` still shows 3.10+ after activating, another env (often
-the project `.venv`) is shadowing conda on `PATH`. Leave it first, then
-re-activate:
+If `python --version` still shows 3.10+ after activating, vast.ai's default
+`/venv/main` env (auto-activated on every login by the container template) is
+shadowing conda on `PATH`. Leave it first, then re-activate:
 
 ```bash
-deactivate         # leave the .venv if it is active
+deactivate 2>/dev/null        # leave vast.ai's /venv/main if active
+conda deactivate 2>/dev/null  # in case conda is also stacked
 conda activate botsort
-which python        # should be .../venv/botsort/bin/python
+which python                  # should be /venv/botsort/bin/python
 ```
 
 ---
@@ -260,5 +261,5 @@ Students then analyze the CSVs with `scripts/analyze_embedding_export.py`.
 | "exp file" / detector error | missing `-f`/`-c` | Pass both, as in step 6 |
 | `git am` fails: "empty ident" / "no email" | no git identity for `git am` | `setup_repo.py` now uses `git apply` (no identity needed) |
 | Patch did not apply | upstream drift / already applied | Re-run `setup_repo.py --force` |
-| `conda activate botsort` but `python --version` is 3.12 | the `.venv` is shadowing conda on `PATH` | `deactivate` the `.venv`, then `conda activate botsort` |
+| `conda activate botsort` but `python --version` is 3.12 | vast.ai's `/venv/main` is shadowing conda on `PATH` | `deactivate` `/venv/main`, then `conda activate botsort` |
 | `pip install torch` fails / no matching distribution | torch 2.11/cu128 has no py3.9 wheels | pin `torch==2.5.1 torchvision==0.20.1` (cu121) |
