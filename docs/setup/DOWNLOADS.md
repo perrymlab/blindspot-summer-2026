@@ -2,6 +2,9 @@
 
 This document lists external data and model artifacts needed for the project. Do not commit datasets, model weights, videos, or raw tracker outputs to git.
 
+> Rebuilding a GPU box from scratch (e.g. after a cloud instance was wiped)?
+> See `docs/setup/RECOVERY.md` for the full recovery checklist.
+
 ## Intersection Footage (`blindspot_data`)
 
 The project runs on locally captured multi-camera intersection footage,
