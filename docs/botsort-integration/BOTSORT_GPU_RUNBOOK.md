@@ -247,11 +247,16 @@ Students do not get this video; they redraw boxes from the exported CSV with
 ## 9. Hand off to students
 
 Copy the CSVs out of `runs/botsort/` to wherever students retrieve results.
-Do **not** commit CSVs, weights, or videos to git. Record each run's metadata
+Do **not** commit raw CSVs, weights, or videos directly to git (`runs/` is
+gitignored) -- if you want an export versioned, publish it via Git LFS or a
+Release as described in `docs/data/SYNCING_RUN_OUTPUTS.md`. Record each run's metadata
 (see the "Required Run Log Fields" in `BOTSORT_INTEGRATION.md`): fork commit,
 Python/PyTorch/CUDA, scenario/camera, epsilon/seed, and the exact command.
 
 Students then analyze the CSVs with `scripts/analyze_embedding_export.py`.
+
+To preserve exports off the ephemeral box (and optionally version them in the
+repo via Git LFS or a GitHub Release), see `docs/data/SYNCING_RUN_OUTPUTS.md`.
 
 ---
 
