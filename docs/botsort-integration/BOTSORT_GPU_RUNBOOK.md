@@ -100,8 +100,13 @@ This is the verified BoT-SORT/FastReID dependency set, including the required
 ## 5. Create the patched BoT-SORT checkout
 
 ```bash
-python scripts/setup_repo.py --skip-bot-sort=false
+python scripts/setup_repo.py --skip-venv
 ```
+
+Use `--skip-venv` here: on the GPU box you run BoT-SORT from this Python 3.9
+`botsort` env, and the project `.venv` would fail to install (the project
+package requires Python >=3.10). Without `--skip-venv`, the script first tries
+to build the project `.venv` from the active 3.9 interpreter and aborts.
 
 `setup_repo.py` clones BoT-SORT at the pinned commit
 (`251985436d6712aaf682aaaf5f71edb4987224bd`) and applies the PRIME patch with
