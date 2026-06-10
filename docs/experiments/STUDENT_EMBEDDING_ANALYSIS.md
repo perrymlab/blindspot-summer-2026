@@ -105,7 +105,34 @@ Try a couple of values and note the effect in your run log.
 
 ---
 
-## 6. Record your run
+## 6. (Optional) See the bounding boxes
+
+The researcher's annotated video (boxes + track ids) is produced on the GPU box
+with `--save_result` and usually isn't shared. But the CSV already contains the
+detection boxes (`x1,y1,x2,y2`), so if you also have the **source video** you can
+redraw them locally with `scripts/visualize_boxes.py`:
+
+```bash
+pip install opencv-python   # not a default project dep
+python scripts/visualize_boxes.py \
+  --csv runs/botsort/clean_c01.csv \
+  --video /path/to/S01/c001/vdo.mp4 \
+  --camera c01 \
+  --out runs/embedding_analysis/clean_c01_boxes.mp4
+```
+
+Open the output mp4 in any player. Notes:
+
+- Boxes are colored by `--color-by` (default `detection_index`). If your CSV has
+  merged global ids, use `--color-by track_id` to color per identity.
+- BoT-SORT frame numbers are 1-based. If the boxes look one frame off, pass
+  `--frame-offset 1` or `--frame-offset -1`.
+- If it reports "0 boxes drawn", the CSV and video don't line up (wrong video,
+  or a frame-base mismatch).
+
+---
+
+## 7. Record your run
 
 Copy `docs/templates/RUN_LOG_TEMPLATE.md` into your week's experiment folder
 with a dated filename and record:
