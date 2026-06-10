@@ -24,6 +24,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bot-sort-url", default=DEFAULT_BOTSORT_URL)
     parser.add_argument("--bot-sort-path", default=str(DEFAULT_BOTSORT_PATH))
     parser.add_argument("--skip-bot-sort", action="store_true")
+    parser.add_argument(
+        "--skip-venv",
+        action="store_true",
+        help="Do not create the project .venv or install the project package. "
+        "Use this on a researcher GPU box, where you only need the BoT-SORT "
+        "checkout and run BoT-SORT from the separate Python 3.9 'botsort' env.",
+    )
     parser.add_argument("--force", action="store_true", help="Recreate existing venv/vendor paths.")
     return parser.parse_args()
 
@@ -119,16 +126,38 @@ def main() -> None:
     if not bot_sort_path.is_absolute():
         bot_sort_path = (ROOT / bot_sort_path).resolve()
 
-    python = setup_venv(venv_path, args.force)
+    python: Path | None = None
+    if not args.skip_venv:
+        if sys.version_info < (3, 10):
+            raise SystemExit(
+                "ERROR: setup_repo.py was launched with Python "
+                f"{sys.version.split()[0]}, but the project package requires "
+                ">=3.10. The .venv is created from the interpreter that runs this "
+                "script, so it would fail to install.\n"
+                "Fix one of these:\n"
+                "  - Run with a 3.10+ interpreter, e.g.:  python3.12 scripts/setup_repo.py\n"
+                "  - On a researcher GPU box you usually only need the BoT-SORT "
+                "checkout; skip the project venv:\n"
+                "        python scripts/setup_repo.py --skip-venv\n"
+                "    (keep running BoT-SORT from the Python 3.9 'botsort' env)."
+            )
+        python = setup_venv(venv_path, args.force)
+
     if not args.skip_bot_sort:
         setup_botsort(args.bot_sort_url, bot_sort_path, args.force)
 
-    run([str(python), "scripts/smoke_test.py"])
+    if python is not None:
+        run([str(python), "scripts/smoke_test.py"])
 
     print()
     print("Setup complete.")
-    print(f"Virtual environment: {venv_path}")
-    print("Run project commands through that environment's Python executable.")
+    if python is not None:
+        print(f"Virtual environment: {venv_path}")
+        print("Run project commands through that environment's Python executable.")
+    else:
+        print("Skipped project .venv (--skip-venv).")
+    if not args.skip_bot_sort:
+        print(f"BoT-SORT checkout: {bot_sort_path}")
 
 
 if __name__ == "__main__":

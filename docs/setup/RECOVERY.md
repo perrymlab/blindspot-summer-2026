@@ -50,10 +50,16 @@ command regenerates them.
    ```bash
    pip install -r requirements-botsort-py39.txt
    ```
-5. Recreate and patch BoT-SORT:
+5. Recreate and patch BoT-SORT. On the GPU box you only need the BoT-SORT
+   checkout (you run BoT-SORT from this 3.9 `botsort` env), so skip the project
+   `.venv` -- the project package requires Python >=3.10 and would fail to
+   install under 3.9:
    ```bash
-   python scripts/setup_repo.py
+   python scripts/setup_repo.py --skip-venv
    ```
+   (The project `.venv` and `prime_mtmc` analysis package are only needed for
+   the CSV-analysis workflow, which runs on a separate Python 3.10+ interpreter
+   -- see `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`.)
 6. Re-fetch the off-git artifacts:
    - Weights into `vendor/BoT-SORT/pretrained/` (`bytetrack_x_mot17.pth.tar`,
      `veri_sbs_R50-ibn.pth`) -- see `docs/setup/DOWNLOADS.md`.
