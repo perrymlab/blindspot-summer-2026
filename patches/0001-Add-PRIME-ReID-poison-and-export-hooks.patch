@@ -134,7 +134,7 @@ diff --git a/tools/demo.py b/tools/demo.py
 index b2c0bd2..cfcdeed 100644
 --- a/tools/demo.py
 +++ b/tools/demo.py
-@@ -59,6 +59,11 @@ def make_parser():
+@@ -59,6 +59,12 @@ def make_parser():
      parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot17_sbs_S50.pth", type=str,help="reid config file path")
      parser.add_argument('--proximity_thresh', type=float, default=0.5, help='threshold for rejecting low overlap reid matches')
      parser.add_argument('--appearance_thresh', type=float, default=0.25, help='threshold for rejecting low appearance similarity reid matches')
@@ -143,10 +143,22 @@ index b2c0bd2..cfcdeed 100644
 +    parser.add_argument("--prime-poison-epsilon", type=float, default=0.0, help="L2 magnitude of PRIME ReID embedding perturbation")
 +    parser.add_argument("--prime-poison-seed", type=int, default=7, help="Random seed for PRIME ReID embedding perturbation")
 +    parser.add_argument("--prime-export-embeddings", default=None, help="Optional CSV path for exported ReID embeddings")
++    parser.add_argument("--prime-classes", default=None, help="Comma-separated detector class ids to keep (COCO vehicles: 2,3,5,7). Default keeps all classes.")
      return parser
  
  
-@@ -275,7 +280,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
+@@ -249,5 +255,10 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
+                 detections = outputs[:, :7]
+                 detections[:, :4] /= scale
+ 
++                if getattr(args, "prime_classes", None):
++                    keep_ids = {int(c) for c in str(args.prime_classes).split(",") if c.strip()}
++                    keep = [i for i in range(len(detections)) if int(detections[i, 6]) in keep_ids]
++                    detections = detections[keep]
++
+                 # Run tracker
+                 online_targets = tracker.update(detections, img_info["raw_img"])
+@@ -275,7 +286,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                  online_im = img_info['raw_img']
              if args.save_result:
                  vid_writer.write(online_im)

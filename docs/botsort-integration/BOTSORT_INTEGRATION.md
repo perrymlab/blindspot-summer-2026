@@ -52,6 +52,7 @@ In a fresh fork/clone of this repository, run `python scripts/setup_repo.py` to 
 - `--prime-poison-epsilon 0.5`
 - `--prime-poison-seed 7`
 - `--prime-export-embeddings runs/botsort/c01_embeddings.csv`
+- `--prime-classes 2,3,5,7` (restrict a COCO detector to vehicle classes: car/motorcycle/bus/truck)
 
 For the exact, verified-working clean and poisoned commands (with the required
 `-f`/`--ckpt` flags and the VeRi vehicle ReID config), see

@@ -32,8 +32,8 @@ workflow doc instead.
 - An NVIDIA GPU. Confirm the driver and CUDA with `nvidia-smi`.
 - `conda` (Miniconda/Anaconda) and `git`.
 - The detector + ReID weights (see `docs/setup/DOWNLOADS.md`):
-  - Detector: `bytetrack_x_mot17.pth.tar`
-  - ReID: `mot17_sbs_S50.pth` (or the VeRi vehicle weights for vehicle data)
+  - Detector: `yolox_x.pth` (COCO YOLOX-x; detects vehicles)
+  - ReID: VeRi vehicle weights `veri_sbs_R50-ibn.pth`
 - The intersection footage arranged in the standard layout
   (`<root>/S01/c001/vdo.mp4`, ...). See `docs/setup/DOWNLOADS.md`.
 
@@ -121,8 +121,8 @@ Place the weights where the demo expects them. This project uses the **VeRi
 vehicle** ReID model (the footage is vehicles, not people):
 
 ```
-vendor/BoT-SORT/pretrained/bytetrack_x_mot17.pth.tar   # YOLOX detector
-vendor/BoT-SORT/pretrained/veri_sbs_R50-ibn.pth        # VeRi vehicle ReID
+vendor/BoT-SORT/pretrained/yolox_x.pth          # COCO YOLOX-x detector (vehicles)
+vendor/BoT-SORT/pretrained/veri_sbs_R50-ibn.pth # VeRi vehicle ReID
 ```
 
 See `docs/setup/DOWNLOADS.md` for the download links.
@@ -138,7 +138,9 @@ example below is the full command, not the abbreviated form.
 Run commands from inside `vendor/BoT-SORT` so the relative `pretrained/` and
 `fast_reid/` paths resolve.
 
-The commands below are the exact verified-working invocations from the GPU box.
+The commands below use the COCO YOLOX-x vehicle detector (see the first note
+about why the MOT17 detector was dropped). The ReID/PRIME flags are the
+verified-working invocation from the GPU box.
 
 ### Clean run (per camera)
 
@@ -146,8 +148,10 @@ The commands below are the exact verified-working invocations from the GPU box.
 cd vendor/BoT-SORT
 python tools/demo.py video \
   --path /root/blindspot_data/S01/c001/vdo.mp4 \
-  -f yolox/exps/example/mot/yolox_x_mix_det.py \
-  --ckpt pretrained/bytetrack_x_mot17.pth.tar \
+  -f yolox/exps/default/yolox_x.py \
+  --ckpt pretrained/yolox_x.pth \
+  --prime-classes 2,3,5,7 \
+  --aspect_ratio_thresh 10 \
   --with-reid \
   --fast-reid-config fast_reid/configs/VeRi/sbs_R50-ibn.yml \
   --fast-reid-weights pretrained/veri_sbs_R50-ibn.pth \
@@ -163,8 +167,10 @@ Add the poison flags; keep a separate output path:
 ```bash
 python tools/demo.py video \
   --path /root/blindspot_data/S01/c001/vdo.mp4 \
-  -f yolox/exps/example/mot/yolox_x_mix_det.py \
-  --ckpt pretrained/bytetrack_x_mot17.pth.tar \
+  -f yolox/exps/default/yolox_x.py \
+  --ckpt pretrained/yolox_x.pth \
+  --prime-classes 2,3,5,7 \
+  --aspect_ratio_thresh 10 \
   --with-reid \
   --fast-reid-config fast_reid/configs/VeRi/sbs_R50-ibn.yml \
   --fast-reid-weights pretrained/veri_sbs_R50-ibn.pth \
@@ -177,6 +183,18 @@ python tools/demo.py video \
 ```
 
 Notes:
+- **Detector: COCO YOLOX-x, not the MOT17 detector.** This is a vehicle project,
+  so use `-f yolox/exps/default/yolox_x.py` with `--ckpt pretrained/yolox_x.pth`
+  and `--prime-classes 2,3,5,7` (COCO car/motorcycle/bus/truck). The old
+  `bytetrack_x_mot17.pth.tar` is a pedestrian detector and finds almost nothing
+  on vehicle footage (~8 detections in 6000 frames). See `docs/setup/DOWNLOADS.md`.
+- **Output path changes with the exp.** With the COCO exp the annotated video
+  lands under `YOLOX_outputs/yolox_x/track_vis/<timestamp>/` (not
+  `yolox_x_mix_det`).
+- **`--aspect_ratio_thresh 10`** keeps wide vehicle boxes in the annotated video
+  and the tracking-results `.txt`. The demo default (`1.6`) is tuned for upright
+  pedestrians and silently drops wide boxes from the *visualization* (the
+  embedding CSV is exported earlier and is unaffected either way).
 - The box is usually **headless** (no display). The patch replaces the demo's
   `cv2.waitKey(1)` GUI call, so it runs without an X server. If you hit any
   other `cv2.imshow`/GUI error, you are on an unpatched checkout -- redo step 5.
@@ -218,7 +236,7 @@ bounding boxes and track ids drawn on each frame. YOLOX/BoT-SORT puts it under
 
 ```bash
 find YOLOX_outputs -name '*.mp4' -printf '%T+ %p\n' | sort | tail
-# e.g. YOLOX_outputs/yolox_x_mix_det/track_vis/2026_06_09_18_05_12/vdo.mp4
+# e.g. YOLOX_outputs/yolox_x/track_vis/2026_06_09_18_05_12/vdo.mp4
 ```
 
 The box is **headless**, so view the video off-box one of two ways:
@@ -226,7 +244,7 @@ The box is **headless**, so view the video off-box one of two ways:
 - **Download and play locally** (from your own machine):
 
   ```bash
-  scp root@<box-host>:/workspace/blindspot-summer-2026/vendor/BoT-SORT/YOLOX_outputs/yolox_x_mix_det/track_vis/<timestamp>/vdo.mp4 .
+  scp root@<box-host>:/workspace/blindspot-summer-2026/vendor/BoT-SORT/YOLOX_outputs/yolox_x/track_vis/<timestamp>/vdo.mp4 .
   ```
 
   Then open it in VLC / any player.
