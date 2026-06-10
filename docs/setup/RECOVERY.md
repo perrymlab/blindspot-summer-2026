@@ -36,7 +36,10 @@ command regenerates them.
    ```bash
    conda create -y -n botsort python=3.9
    conda activate botsort
-   python --version   # must say 3.9.x; if not, `deactivate` any active .venv first
+   python --version   # must say 3.9.x
+   # If it still shows 3.12, vast.ai's default `/venv/main` env is shadowing
+   # conda on PATH. Leave it first, then re-activate:
+   #     deactivate 2>/dev/null; conda activate botsort; which python
    ```
 3. Install the pinned PyTorch (a bare `pip install torch` pulls a build with no
    3.9 wheels):
