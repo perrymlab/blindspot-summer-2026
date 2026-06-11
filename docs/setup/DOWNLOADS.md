@@ -29,6 +29,7 @@ Default data root:
 
 - `~/blindspot_data` on macOS/Linux
 - `C:\Users\<you>\blindspot_data` on Windows
+- `/workspace/blindspot_data` on a GPU box (persistent volume; auto-detected)
 - override with the `BLINDSPOT_DATA_ROOT` environment variable
 
 Workflow:

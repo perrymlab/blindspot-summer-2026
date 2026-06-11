@@ -10,7 +10,8 @@ Project convention (CityFlowV2-style, dataset-agnostic):
         S02/
             ...
 
-The data root defaults to ``$BLINDSPOT_DATA_ROOT`` or ``~/blindspot_data`` so
+The data root defaults to ``$BLINDSPOT_DATA_ROOT``, else ``/workspace/blindspot_data``
+(the GPU box persistent volume) if present, else ``~/blindspot_data``, so
 no machine-specific paths land in the repo.
 
 Source layout this script understands (matches the current local capture):
@@ -42,6 +43,9 @@ def default_data_root() -> Path:
     env = os.environ.get("BLINDSPOT_DATA_ROOT")
     if env:
         return Path(env).expanduser()
+    for candidate in (Path("/workspace/blindspot_data"), Path.home() / "blindspot_data"):
+        if candidate.is_dir():
+            return candidate
     return Path.home() / "blindspot_data"
 
 
@@ -52,7 +56,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=default_data_root(),
         help="Folder containing the raw 'video N' subfolders. "
-        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data.",
+        "Defaults to $BLINDSPOT_DATA_ROOT, else /workspace/blindspot_data if present, else ~/blindspot_data.",
     )
     parser.add_argument(
         "--dest",

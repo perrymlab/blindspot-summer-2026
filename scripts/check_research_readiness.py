@@ -14,12 +14,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def default_data_root() -> Path:
     """Resolve the project's default data root.
 
-    Priority: ``BLINDSPOT_DATA_ROOT`` env var, then ``~/blindspot_data``.
+    Priority: ``BLINDSPOT_DATA_ROOT`` env var, then ``/workspace/blindspot_data``
+    (the GPU box's persistent volume) if it exists, then ``~/blindspot_data``.
     Kept user-agnostic so no machine-specific paths leak into the repo.
     """
     env = os.environ.get("BLINDSPOT_DATA_ROOT")
     if env:
         return Path(env).expanduser()
+    for candidate in (Path("/workspace/blindspot_data"), Path.home() / "blindspot_data"):
+        if candidate.is_dir():
+            return candidate
     return Path.home() / "blindspot_data"
 
 
@@ -35,7 +39,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=default_data_root(),
         help="Dataset root containing scenario subfolders. "
-        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data. "
+        "Defaults to $BLINDSPOT_DATA_ROOT, else /workspace/blindspot_data if present, else ~/blindspot_data. "
         "(--cityflow-root is a deprecated alias kept for backward compatibility.)",
     )
     parser.add_argument("--detector-weights", type=Path, default=None)

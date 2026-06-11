@@ -59,7 +59,8 @@ root. Run it without `--apply` first to dry-run the plan.
 ### 3. Data root resolved
 
 By default everything resolves to `~/blindspot_data` (`C:\Users\<you>\blindspot_data`
-on Windows). To use a different location, set the `BLINDSPOT_DATA_ROOT`
+on Windows). On a GPU box, `/workspace/blindspot_data` (the persistent volume)
+is picked up automatically when it exists. To use a different location, set the `BLINDSPOT_DATA_ROOT`
 environment variable, or pass `--data-root` to the script:
 
 ```cmd

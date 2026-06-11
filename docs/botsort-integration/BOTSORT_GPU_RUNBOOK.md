@@ -147,7 +147,7 @@ verified-working invocation from the GPU box.
 ```bash
 cd vendor/BoT-SORT
 python tools/demo.py video \
-  --path /root/blindspot_data/S01/c001/vdo.mp4 \
+  --path /workspace/blindspot_data/S01/c001/vdo.mp4 \
   -f yolox/exps/default/yolox_x.py \
   --ckpt pretrained/yolox_x.pth \
   --prime-classes 2,3,5,7 \
@@ -166,7 +166,7 @@ Add the poison flags; keep a separate output path:
 
 ```bash
 python tools/demo.py video \
-  --path /root/blindspot_data/S01/c001/vdo.mp4 \
+  --path /workspace/blindspot_data/S01/c001/vdo.mp4 \
   -f yolox/exps/default/yolox_x.py \
   --ckpt pretrained/yolox_x.pth \
   --prime-classes 2,3,5,7 \
