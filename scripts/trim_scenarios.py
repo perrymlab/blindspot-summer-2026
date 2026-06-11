@@ -42,6 +42,9 @@ def default_data_root() -> Path:
     env = os.environ.get("BLINDSPOT_DATA_ROOT")
     if env:
         return Path(env).expanduser()
+    for candidate in (Path("/workspace/blindspot_data"), Path.home() / "blindspot_data"):
+        if candidate.is_dir():
+            return candidate
     return Path.home() / "blindspot_data"
 
 
