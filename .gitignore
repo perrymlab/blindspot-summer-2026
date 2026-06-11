@@ -12,5 +12,6 @@ dist/
 runs/
 vendor/
 docs/setup/LOCAL_PATHS.md
+docs/LOCAL_STUDENT_HANDOFF.md
 
 *.log
