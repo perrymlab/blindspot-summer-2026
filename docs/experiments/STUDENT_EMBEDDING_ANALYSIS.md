@@ -32,9 +32,17 @@ python scripts/smoke_test.py
 
 ## 2. Get a CSV from the researcher
 
-A researcher hands you one or more embedding CSVs (e.g. `clean_c01.csv`,
-`poisoned_c01.csv`). Save them somewhere outside git, for example
-`runs/botsort/`. **Never commit CSVs, videos, or weights.**
+A researcher hands you one or more embedding CSVs. With the batch runner
+(`scripts/run_baselines.py`) the names are self-describing, e.g.:
+
+- `S01_clean_all-cams.csv` -- scenario S01, clean run, all cameras merged.
+- `S01_poison_c01-c02_eps0.5_seed7_all-cams.csv` -- same scenario poisoned;
+  the name tells you the poisoned cameras, epsilon, and seed.
+
+**Use the `*_all-cams.csv` files for analysis** -- the cross-camera detector
+needs all cameras in one table. Per-camera files (`S01_c01_clean.csv`, ...)
+are for debugging a single camera. Save them somewhere outside git, for
+example `runs/botsort/`. **Never commit CSVs, videos, or weights.**
 
 Each CSV has one row per detection with this header:
 
@@ -66,22 +74,23 @@ needs a track column:
 
 ```bash
 python scripts/analyze_embedding_export.py \
-  --input runs/botsort/clean_c01.csv \
+  --input runs/botsort/S01_clean_all-cams.csv \
   --track-column detection_index \
   --scenario S01 \
-  --out-dir runs/embedding_analysis/clean_c01
+  --out-dir runs/embedding_analysis/S01_clean
 ```
 
 For a poisoned run, tell the script which cameras were poisoned so it can score
-detection:
+detection (with batch-runner files, read them straight off the filename --
+`poison_c01-c02_eps0.5` means `--poisoned-cameras c01,c02`):
 
 ```bash
 python scripts/analyze_embedding_export.py \
-  --input runs/botsort/poisoned_c01.csv \
+  --input runs/botsort/S01_poison_c01-c02_eps0.5_seed7_all-cams.csv \
   --track-column track_id \
   --scenario S01 \
   --poisoned-cameras c01,c02 \
-  --out-dir runs/embedding_analysis/poisoned_c01
+  --out-dir runs/embedding_analysis/S01_poisoned
 ```
 
 ---
@@ -115,10 +124,10 @@ redraw them locally with `scripts/visualize_boxes.py`:
 ```bash
 pip install opencv-python   # not a default project dep
 python scripts/visualize_boxes.py \
-  --csv runs/botsort/clean_c01.csv \
+  --csv runs/botsort/S01/S01_c01_clean.csv \
   --video /path/to/S01/c001/vdo.mp4 \
   --camera c01 \
-  --out runs/embedding_analysis/clean_c01_boxes.mp4
+  --out runs/embedding_analysis/S01_c01_clean_boxes.mp4
 ```
 
 Open the output mp4 in any player. Notes:

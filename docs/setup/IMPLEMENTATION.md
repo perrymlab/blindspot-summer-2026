@@ -77,20 +77,20 @@ Useful demo flags now available in the patched checkout:
 - `--prime-poison-cameras c01,c02`
 - `--prime-poison-epsilon 0.5`
 - `--prime-poison-seed 7`
-- `--prime-export-embeddings ../../runs/botsort/clean_c01.csv`
+- `--prime-export-embeddings ../../runs/botsort/S01/S01_c01_clean.csv`
 
 Example clean per-camera export:
 
 ```bash
 cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv
+python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/S01/S01_c01_clean.csv
 ```
 
 Example poisoned per-camera export:
 
 ```bash
 cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5 --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv
+python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5 --prime-export-embeddings ../../runs/botsort/S01/S01_c01_poison_c01-c02_eps0.5_seed7.csv
 ```
 
 See `docs/botsort-integration/BOTSORT_INTEGRATION.md` for hook details and run-log requirements.

@@ -142,6 +142,28 @@ The commands below use the COCO YOLOX-x vehicle detector (see the first note
 about why the MOT17 detector was dropped). The ReID/PRIME flags are the
 verified-working invocation from the GPU box.
 
+### Batch mode (recommended)
+
+`scripts/run_baselines.py` runs everything below for whole scenarios -- every
+camera, clean and poisoned -- with self-describing output names, a provenance
+manifest (`runs/botsort/run_manifest.csv`), and per-scenario merged CSVs the
+student analysis consumes directly. From the **repo root** (not vendor/BoT-SORT),
+in the same `botsort` env:
+
+```bash
+python scripts/run_baselines.py --scenarios S01,S02          # print the plan
+python scripts/run_baselines.py --scenarios S01,S02 --apply  # run it
+python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply
+```
+
+Outputs land in `runs/botsort/<scenario>/`, e.g. `S01_c01_clean.csv` and
+`S01_poison_c01-c02_eps0.5_seed7_all-cams.csv`. It prefers trimmed videos
+(`vdo_trim.mp4`), skips already-completed CSVs (resume-friendly; `--overwrite`
+to redo), and `--save-result` adds annotated videos.
+
+The manual per-camera commands below remain the reference for what batch mode
+runs under the hood, and for one-off debugging runs.
+
 ### Clean run (per camera)
 
 ```bash
@@ -156,7 +178,7 @@ python tools/demo.py video \
   --fast-reid-config fast_reid/configs/VeRi/sbs_R50-ibn.yml \
   --fast-reid-weights pretrained/veri_sbs_R50-ibn.pth \
   --prime-camera-id c01 \
-  --prime-export-embeddings ../../runs/botsort/clean_c01.csv \
+  --prime-export-embeddings ../../runs/botsort/S01/S01_c01_clean.csv \
   --save_result
 ```
 
@@ -178,7 +200,7 @@ python tools/demo.py video \
   --prime-poison-cameras c01,c02 \
   --prime-poison-epsilon 0.5 \
   --prime-poison-seed 7 \
-  --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv \
+  --prime-export-embeddings ../../runs/botsort/S01/S01_c01_poison_c01-c02_eps0.5_seed7.csv \
   --save_result
 ```
 
@@ -219,10 +241,10 @@ camera,frame,detection_index,x1,y1,x2,y2,embedding
 `embedding` is a space-separated float vector. Quick checks:
 
 ```bash
-head -1 ../../runs/botsort/clean_c01.csv
-wc -l ../../runs/botsort/clean_c01.csv
+head -1 ../../runs/botsort/S01/S01_c01_clean.csv
+wc -l ../../runs/botsort/S01/S01_c01_clean.csv
 # embedding dimension of the first data row:
-sed -n '2p' ../../runs/botsort/clean_c01.csv | awk -F',' '{print NF" cols; "split($NF,a," ")" dims"}'
+sed -n '2p' ../../runs/botsort/S01/S01_c01_clean.csv | awk -F',' '{print NF" cols; "split($NF,a," ")" dims"}'
 ```
 
 ---
@@ -272,6 +294,10 @@ Students do not get this video; they redraw boxes from the exported CSV with
 ## 9. Hand off to students
 
 Copy the CSVs out of `runs/botsort/` to wherever students retrieve results.
+Hand students the per-scenario **merged** files (`*_all-cams.csv`) -- the
+cross-camera detector needs all cameras in one table; per-camera files are for
+debugging. If you used batch mode, `runs/botsort/run_manifest.csv` already
+records each run's metadata -- copy the relevant rows into the run log.
 Do **not** commit raw CSVs, weights, or videos directly to git (`runs/` is
 gitignored) -- if you want an export versioned, publish it via Git LFS or a
 Release as described in `docs/data/SYNCING_RUN_OUTPUTS.md`. Record each run's metadata

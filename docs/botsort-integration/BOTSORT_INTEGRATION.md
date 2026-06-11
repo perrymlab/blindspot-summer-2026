@@ -59,7 +59,7 @@ For the exact, verified-working clean and poisoned commands (with the required
 [BOTSORT_GPU_RUNBOOK.md](BOTSORT_GPU_RUNBOOK.md#6-run-the-tracker-and-export-embeddings).
 The `--prime-*` flags layer on top of that base command:
 
-- Clean export: `--prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv`
+- Clean export: `--prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/S01/S01_c01_clean.csv`
 - Poisoned export: add `--prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5`
 
 ## Required Run Log Fields
@@ -87,5 +87,11 @@ The detector in this repository reads that CSV with `EmbeddingTable.from_csv`.
 The direct BoT-SORT export writes raw detection-level embeddings. For camera-level detection with this repository, merge those rows with tracker-assigned global IDs or ground-truth IDs, then run:
 
 ```bash
-python scripts/analyze_embedding_export.py --input runs/botsort/merged_embeddings.csv --track-column track_id --poisoned-cameras c01,c02
+python scripts/analyze_embedding_export.py --input runs/botsort/S01/S01_poison_c01-c02_eps0.5_seed7_all-cams.csv --track-column track_id --poisoned-cameras c01,c02
+```
+
+`scripts/run_baselines.py` produces those per-scenario `*_all-cams.csv` merges
+automatically (see `BOTSORT_GPU_RUNBOOK.md`, "Batch mode").
+
+```bash
 ```
