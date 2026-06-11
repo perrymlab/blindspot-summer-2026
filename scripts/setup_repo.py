@@ -32,6 +32,15 @@ def parse_args() -> argparse.Namespace:
         "checkout and run BoT-SORT from the separate Python 3.9 'botsort' env.",
     )
     parser.add_argument("--force", action="store_true", help="Recreate existing venv/vendor paths.")
+    parser.add_argument(
+        "--reapply-patch",
+        action="store_true",
+        help="Re-apply the PRIME patch to an existing BoT-SORT checkout without "
+        "re-cloning. Use this after the patch changes. It reverts tracked files "
+        "to the pinned commit and re-applies the patch, preserving untracked "
+        "files such as downloaded weights in pretrained/. Discards any local "
+        "edits to tracked files in the checkout.",
+    )
     return parser.parse_args()
 
 
@@ -65,11 +74,29 @@ def setup_venv(venv_path: Path, force: bool) -> Path:
     return python
 
 
-def setup_botsort(bot_sort_url: str, bot_sort_path: Path, force: bool) -> None:
+def setup_botsort(
+    bot_sort_url: str,
+    bot_sort_path: Path,
+    force: bool,
+    reapply_patch: bool = False,
+) -> None:
     recreate_path(bot_sort_path, force)
     if bot_sort_path.exists():
+        if reapply_patch:
+            print(
+                f"Re-applying PRIME patch to existing checkout at {bot_sort_path} "
+                "(reverting tracked files to the pinned commit; untracked files "
+                "like pretrained/ are preserved)."
+            )
+            run(["git", "-C", str(bot_sort_path), "checkout", "--", "."])
+            apply_patch(bot_sort_path)
+            return
         print(f"BoT-SORT checkout already exists at {bot_sort_path}; leaving it unchanged.")
-        print("Re-run with --force to recreate it from upstream and reapply the PRIME patch.")
+        print(
+            "Re-run with --reapply-patch to reapply the PRIME patch in place "
+            "(keeps downloaded weights), or --force to recreate the whole "
+            "checkout from upstream (deletes pretrained/ weights)."
+        )
         return
 
     bot_sort_path.parent.mkdir(parents=True, exist_ok=True)
@@ -144,7 +171,7 @@ def main() -> None:
         python = setup_venv(venv_path, args.force)
 
     if not args.skip_bot_sort:
-        setup_botsort(args.bot_sort_url, bot_sort_path, args.force)
+        setup_botsort(args.bot_sort_url, bot_sort_path, args.force, args.reapply_patch)
 
     if python is not None:
         run([str(python), "scripts/smoke_test.py"])
