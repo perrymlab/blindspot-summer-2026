@@ -74,7 +74,7 @@ Use `prime_mtmc.data.EmbeddingTable.from_csv` to load exported embeddings.
 
 ## Next Engineering Step
 
-Set up BoT-SORT runtime dependencies and weights, organize the locally captured intersection footage into `~/blindspot_data/S0N/c00K/vdo.mp4` and trim it per `docs/data/SCENARIO_TRIMMING.md`, then export clean and poisoned per-camera embeddings with the patched BoT-SORT flags described in `docs/botsort-integration/BOTSORT_INTEGRATION.md`.
+Set up BoT-SORT runtime dependencies and weights, organize the locally captured intersection footage into `<data root>/S0N/c00K/vdo.mp4` (`~/blindspot_data`, or `/workspace/blindspot_data` on a GPU box) and trim it per `docs/data/SCENARIO_TRIMMING.md`, then batch-export clean and poisoned embeddings with `scripts/run_baselines.py` (see `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`, "Batch mode").
 
 ## BoT-SORT Clone
 

@@ -38,10 +38,10 @@ and `*.npz` with LFS. Nothing else is converted (small CSVs like
 ```bash
 # 1. gzip the export (keep the original in runs/)
 mkdir -p data/exports/S01
-gzip -c runs/botsort/clean_c01.csv > data/exports/S01/clean_c01.csv.gz
+gzip -c runs/botsort/S01/S01_clean_all-cams.csv > data/exports/S01/S01_clean_all-cams.csv.gz
 
 # 2. commit it (LFS handles the binary blob automatically)
-git add data/exports/S01/clean_c01.csv.gz
+git add data/exports/S01/S01_clean_all-cams.csv.gz
 git commit -m "Add S01 c01 clean embedding export"
 git push
 ```
@@ -52,7 +52,7 @@ Consumers pull it with a normal clone (Git LFS fetches the blob):
 git lfs install        # once
 git clone <repo>       # or: git lfs pull  in an existing clone
 # read directly, gz is transparent:
-python scripts/analyze_embedding_export.py --input data/exports/S01/clean_c01.csv.gz ...
+python scripts/analyze_embedding_export.py --input data/exports/S01/S01_clean_all-cams.csv.gz ...
 ```
 
 ## Alternative: GitHub Release (no LFS quota)
@@ -63,10 +63,10 @@ tagged Release instead:
 ```bash
 # requires the GitHub CLI (gh) authenticated
 gh release create runs-2026-06-10 \
-  runs/botsort/clean_c01.csv.gz \
+  runs/botsort/S01/S01_clean_all-cams.csv.gz \
   --title "Run outputs 2026-06-10" --notes "S01 clean export"
 # add more files later:
-gh release upload runs-2026-06-10 runs/botsort/poisoned_c01.csv.gz
+gh release upload runs-2026-06-10 runs/botsort/S01/S01_poison_c01-c02_eps0.5_seed7_all-cams.csv.gz
 ```
 
 Releases allow up to 2 GiB per file and do **not** count against LFS storage.

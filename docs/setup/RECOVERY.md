@@ -87,7 +87,7 @@ command regenerates them.
 - **Pull artifacts off the box immediately.** After each run, copy the CSVs and
   any video to your machine or cloud:
   ```bash
-  scp root@<box-host>:/workspace/blindspot-summer-2026/runs/botsort/*.csv .
+  scp -r root@<box-host>:/workspace/blindspot-summer-2026/runs/botsort/ .
   ```
 - **Sync exports off the box** (and optionally version them in the repo via Git
   LFS or a Release) -- see `docs/data/SYNCING_RUN_OUTPUTS.md`.
