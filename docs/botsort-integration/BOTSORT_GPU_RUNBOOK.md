@@ -324,3 +324,4 @@ repo via Git LFS or a GitHub Release), see `docs/data/SYNCING_RUN_OUTPUTS.md`.
 | Patch did not apply | upstream drift / already applied | Re-run `setup_repo.py --force` |
 | `conda activate botsort` but `python --version` is 3.12 | vast.ai's `/venv/main` is shadowing conda on `PATH` | `deactivate` `/venv/main`, then `conda activate botsort` |
 | `pip install torch` fails / no matching distribution | torch 2.11/cu128 has no py3.9 wheels | pin `torch==2.5.1 torchvision==0.20.1` (cu121) |
+| `UnboundLocalError: local variable 'vis_folder'` | running without `--save_result` on a pre-fix patch | `git pull`, then `python scripts/setup_repo.py --skip-venv --reapply-patch` |

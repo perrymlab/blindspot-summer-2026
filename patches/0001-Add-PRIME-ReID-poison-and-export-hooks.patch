@@ -131,7 +131,7 @@ index 2c29d25..b9a3fd3 100644
  
  from fast_reid.fastreid.config import configurable
 diff --git a/tools/demo.py b/tools/demo.py
-index b2c0bd2..cfcdeed 100644
+index b2c0bd2..4a6998d 100644
 --- a/tools/demo.py
 +++ b/tools/demo.py
 @@ -59,6 +59,12 @@ def make_parser():
@@ -147,7 +147,7 @@ index b2c0bd2..cfcdeed 100644
      return parser
  
  
-@@ -249,5 +255,10 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
+@@ -249,6 +255,11 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                  detections = outputs[:, :7]
                  detections[:, :4] /= scale
  
@@ -158,6 +158,7 @@ index b2c0bd2..cfcdeed 100644
 +
                  # Run tracker
                  online_targets = tracker.update(detections, img_info["raw_img"])
+ 
 @@ -275,7 +286,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
                  online_im = img_info['raw_img']
              if args.save_result:
@@ -167,8 +168,18 @@ index b2c0bd2..cfcdeed 100644
              if ch == 27 or ch == ord("q") or ch == ord("Q"):
                  break
          else:
+@@ -296,8 +307,8 @@ def main(exp, args):
+     output_dir = osp.join(exp.output_dir, args.experiment_name)
+     os.makedirs(output_dir, exist_ok=True)
+ 
++    vis_folder = osp.join(output_dir, "track_vis")
+     if args.save_result:
+-        vis_folder = osp.join(output_dir, "track_vis")
+         os.makedirs(vis_folder, exist_ok=True)
+ 
+     if args.trt:
 diff --git a/tools/mc_demo.py b/tools/mc_demo.py
-index 2c82097..c49979c 100644
+index 2c82097..a0efc1c 100644
 --- a/tools/mc_demo.py
 +++ b/tools/mc_demo.py
 @@ -59,6 +59,11 @@ def make_parser():
@@ -183,6 +194,16 @@ index 2c82097..c49979c 100644
      return parser
  
  
+@@ -298,8 +303,8 @@ def main(exp, args):
+     output_dir = osp.join(exp.output_dir, args.experiment_name)
+     os.makedirs(output_dir, exist_ok=True)
+ 
++    vis_folder = osp.join(output_dir, "track_vis")
+     if args.save_result:
+-        vis_folder = osp.join(output_dir, "track_vis")
+         os.makedirs(vis_folder, exist_ok=True)
+ 
+     if args.trt:
 diff --git a/tracker/bot_sort.py b/tracker/bot_sort.py
 index 6b1bb48..9c33795 100644
 --- a/tracker/bot_sort.py
@@ -253,5 +274,3 @@ index 404cfcb..a6d36a5 100644
  
          if len(dets) > 0:
              '''Detections'''
--- 
-2.43.0
