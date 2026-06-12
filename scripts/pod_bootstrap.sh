@@ -12,9 +12,10 @@
 #   1. apt tools: tmux, ffmpeg, git-lfs, gh (GitHub CLI).
 #   2. Hooks the persistent conda (miniforge3 on /workspace) into bash so
 #      `conda activate botsort` works in every shell, including tmux panes.
-#   3. (--serve) starts a directory-listing HTTP server on port 8888 serving
-#      ONLY the reports/ folder. Expose port 8888 in the RunPod console to
-#      share https://<pod-id>-8888.proxy.runpod.net with the team.
+#   3. (--serve) starts a directory-listing HTTP server on port 8890
+#      (8888 is taken by RunPod's bundled JupyterLab) serving
+#      ONLY the reports/ folder. Expose port 8890 in the RunPod console to
+#      share https://<pod-id>-8890.proxy.runpod.net with the team.
 #
 # SECURITY: the server has no authentication -- share the URL with the team
 # only. It deliberately serves reports/ alone; NEVER serve the repo root
@@ -56,15 +57,15 @@ fi
 echo "== 3/3 report server =="
 if [ "${1:-}" = "--serve" ]; then
     mkdir -p "$REPO_ROOT/reports"
-    if pgrep -f "http.server 8888" >/dev/null; then
-        echo "   already running on port 8888"
+    if pgrep -f "http.server 8890" >/dev/null; then
+        echo "   already running on port 8890"
     else
         cd "$REPO_ROOT/reports"
-        nohup python3 -m http.server 8888 --bind 0.0.0.0 \
+        nohup python3 -m http.server 8890 --bind 0.0.0.0 \
             > /workspace/report_server.log 2>&1 &
-        echo "   serving $REPO_ROOT/reports on port 8888 (pid $!)"
-        echo "   expose port 8888 in the RunPod console, then share:"
-        echo "   https://<pod-id>-8888.proxy.runpod.net"
+        echo "   serving $REPO_ROOT/reports on port 8890 (pid $!)"
+        echo "   expose port 8890 in the RunPod console, then share:"
+        echo "   https://<pod-id>-8890.proxy.runpod.net"
     fi
 else
     echo "   skipped (pass --serve to start it)"
