@@ -2,33 +2,41 @@
 
 This closes STATUS TODO #4. BoT-SORT runs per camera, so its exports
 (`camera,frame,detection_index,x1,y1,x2,y2,embedding`) carry no cross-camera
-identity. Ground truth comes from the multicam-reid annotation workflow:
+identity. Ground truth comes from the multicam-reid annotation toolkit
+(https://github.com/figaone/multicam-reid):
 
-1. `sync`  -> per-camera frame offsets onto a shared reference timeline.
-2. `track` -> per-camera annotation tracks (local track ids + boxes per frame).
-3. `match` -> `matches.json`: global object id -> {camera: local track id}.
+1. `sync`  -> aligned per-camera clips (`.reid/synced/<segment>/`).
+2. `track` -> per-camera annotation tracks (`.reid/tracks/<cam>.tracks.json`).
+3. `match` -> `.reid/matches.json`: one entry per physical object, mapping
+              each camera name to the local track id it gave that object.
 
 This script joins those annotation tracks onto the BoT-SORT export by
 per-frame box IoU (the two trackers are separate runs, so boxes only roughly
-agree), then replaces the local annotation track id with the global id from
+agree), then replaces the local annotation track id with a global id from
 `matches.json` and writes a `track_id` column the detector can trust:
 
     python scripts/analyze_embedding_export.py --input <output> --track-column track_id
 
-See docs/data/GROUND_TRUTH.md for the full methodology.
+See docs/data/GROUND_TRUTH.md (methodology) and docs/data/ANNOTATION_GUIDE.md
+(step-by-step walkthrough).
 
-Usage:
+Usage (recommended path: BoT-SORT and annotation both ran on the same synced
+clips, so no offsets are needed):
+
     python scripts/build_track_ids.py \
-        --export runs/botsort/S01/S01_poison_c01-c02_eps0.5_seed7_all-cams.csv \
-        --matches annotations/S01/matches.json \
-        --tracks c01=annotations/S01/cam01_tracks.txt \
-        --tracks c02=annotations/S01/cam02_tracks.txt \
-        --tracks c03=annotations/S01/cam03_tracks.txt \
-        --offsets c01=0,c02=-12,c03=31 \
-        --output runs/botsort/S01/S01_poison_..._all-cams_tracked.csv
+        --export runs/botsort/S07/S07_poison_c01-c02_eps0.5_seed7_all-cams.csv \
+        --matches footage/S07/.reid/matches.json \
+        --tracks c01=footage/S07/.reid/tracks/c01.tracks.json \
+        --tracks c02=footage/S07/.reid/tracks/c02.tracks.json \
+        --tracks c03=footage/S07/.reid/tracks/c03.tracks.json \
+        --output runs/botsort/S07/S07_poison_..._all-cams_tracked.csv
+
+Camera names are matched by their trailing number (`c01` == `cam01` == `c001`).
+For non-numeric camera names, map them explicitly:
+    --camera-map cam_north=c01,cam_east=c02,cam_west=c03
 
 Frame offset convention: annotation_frame = export_frame + offset[camera].
-If annotation ran on the same trimmed videos as BoT-SORT, all offsets are 0.
+Only needed when annotation and BoT-SORT ran on different timelines.
 """
 
 from __future__ import annotations
@@ -50,28 +58,46 @@ EXPORT_COLUMNS = {"camera", "frame", "x1", "y1", "x2", "y2"}
 # Camera-id normalization: "c01", "cam01", "c001", "1" all -> 1
 # ---------------------------------------------------------------------------
 
-def normalize_camera(camera: object) -> int:
-    match = re.search(r"(\d+)\s*$", str(camera).strip())
-    if not match:
-        raise ValueError(f"cannot extract camera number from {camera!r}")
-    return int(match.group(1))
+def normalize_camera(camera: object, camera_map: dict[str, str] | None = None) -> int:
+    name = str(camera).strip()
+    if camera_map:
+        name = camera_map.get(name, camera_map.get(name.lower(), name))
+    digit_groups = re.findall(r"\d+", str(name))
+    if not digit_groups:
+        raise ValueError(
+            f"cannot extract camera number from {camera!r}. "
+            "For non-numeric camera names pass --camera-map, e.g. "
+            "--camera-map cam_north=c01,cam_east=c02"
+        )
+    # Last digit group, so "c01" == "cam01" == "c001" == "c01_synced" == 1.
+    return int(digit_groups[-1])
 
 
 # ---------------------------------------------------------------------------
 # matches.json parsing (schema-tolerant)
 # ---------------------------------------------------------------------------
 
-def load_matches(path: Path) -> dict[tuple[int, int], str]:
+def load_matches(path: Path, camera_map: dict[str, str] | None = None) -> dict[tuple[int, int], str]:
     """Return {(camera_number, local_track_id): global_id}.
 
-    Accepts the common shapes:
+    Primary format — multicam-reid `.reid/matches.json`
+    (https://github.com/figaone/multicam-reid):
+      {"version": 1, "matches": [
+        {"frame": 250, "tracks": {"cam_north": 12, "cam_east": 7, "cam_west": null}},
+        ...]}
+    Each entry is one physical object; entry index becomes the global id.
+    `null` means "not visible / not linked in that camera" and is skipped.
+
+    Also accepted for flexibility:
       {"objects": [{"global_id": 5, "tracks": {"cam01": 12, "cam02": 7}}, ...]}
       [{"global_id": 5, "tracks": {...}}, ...]
       {"5": {"cam01": 12, "cam02": 7}, ...}
       [{"global_id": 5, "cam01": 12, "cam02": 7}, ...]
     """
     raw = json.loads(Path(path).read_text())
-    if isinstance(raw, dict) and isinstance(raw.get("objects"), list):
+    if isinstance(raw, dict) and isinstance(raw.get("matches"), list):
+        entries = [(e.get("global_id", e.get("id", i)), e) for i, e in enumerate(raw["matches"])]
+    elif isinstance(raw, dict) and isinstance(raw.get("objects"), list):
         entries = [(e.get("global_id", e.get("id", i)), e) for i, e in enumerate(raw["objects"])]
     elif isinstance(raw, list):
         entries = [(e.get("global_id", e.get("id", i)), e) for i, e in enumerate(raw)]
@@ -85,14 +111,15 @@ def load_matches(path: Path) -> dict[tuple[int, int], str]:
         if isinstance(entry, dict):
             cam_map = entry.get("tracks") or entry.get("cameras") or {
                 k: v for k, v in entry.items()
-                if k not in {"global_id", "id", "label", "notes"} and not isinstance(v, (list, dict))
+                if k not in {"global_id", "id", "label", "notes", "frame", "version"}
+                and not isinstance(v, (list, dict))
             }
         else:
             raise ValueError(f"unrecognized matches.json entry for global id {global_id!r}")
         for camera, local_id in cam_map.items():
             if local_id is None:
                 continue
-            key = (normalize_camera(camera), int(local_id))
+            key = (normalize_camera(camera, camera_map), int(local_id))
             if key in mapping and mapping[key] != str(global_id):
                 raise ValueError(
                     f"conflict: camera-track {key} assigned to global ids "
@@ -111,12 +138,34 @@ def load_matches(path: Path) -> dict[tuple[int, int], str]:
 def load_annotation_tracks(path: Path) -> pd.DataFrame:
     """Return DataFrame [frame, local_id, x1, y1, x2, y2] for one camera.
 
-    MOT format: frame,track_id,x,y,w,h[,conf,...]  (x,y = top-left).
-    JSON format: [{"frame": f, "track_id": t, "x1": .., "y1": .., "x2": .., "y2": ..}, ...]
+    Primary format — multicam-reid `.reid/tracks/<cam>.tracks.json`:
+      {"12": {"frames": [100, 101], "boxes": [[x1,y1,x2,y2], ...], ...}, ...}
+    (top-level key = local track id; frames/boxes are parallel lists).
+
+    Also accepted:
+      MOT text: frame,track_id,x,y,w,h[,conf,...]  (x,y = top-left)
+      JSON list: [{"frame": f, "track_id": t, "x1": .., "y1": .., ...}, ...]
     """
     path = Path(path)
     if path.suffix.lower() == ".json":
         rows = json.loads(path.read_text())
+        if isinstance(rows, dict):
+            records = []
+            for local_id, track in rows.items():
+                for f, box in zip(track["frames"], track["boxes"]):
+                    records.append(
+                        {
+                            "frame": int(f),
+                            "track_id": int(local_id),
+                            "x1": box[0],
+                            "y1": box[1],
+                            "x2": box[2],
+                            "y2": box[3],
+                        }
+                    )
+            if not records:
+                raise ValueError(f"{path}: no track boxes found")
+            rows = records
         frame = pd.DataFrame(rows)
         if {"x", "y", "w", "h"}.issubset(frame.columns):
             frame["x1"] = frame["x"]
@@ -253,7 +302,9 @@ def summarize(joined: pd.DataFrame) -> pd.DataFrame:
 # CLI
 # ---------------------------------------------------------------------------
 
-def parse_key_value_pairs(values: list[str]) -> dict[int, str]:
+def parse_key_value_pairs(
+    values: list[str], camera_map: dict[str, str] | None = None
+) -> dict[int, str]:
     out: dict[int, str] = {}
     for item in values:
         for pair in item.split(","):
@@ -263,7 +314,21 @@ def parse_key_value_pairs(values: list[str]) -> dict[int, str]:
             key, _, value = pair.partition("=")
             if not value:
                 raise ValueError(f"expected key=value, got {pair!r}")
-            out[normalize_camera(key)] = value
+            out[normalize_camera(key, camera_map)] = value
+    return out
+
+
+def parse_camera_map(value: str) -> dict[str, str]:
+    """Parse 'cam_north=c01,cam_east=c02' into {'cam_north': 'c01', ...}."""
+    out: dict[str, str] = {}
+    for pair in value.split(","):
+        pair = pair.strip()
+        if not pair:
+            continue
+        key, _, mapped = pair.partition("=")
+        if not mapped:
+            raise ValueError(f"expected name=camera, got {pair!r}")
+        out[key.strip()] = mapped.strip()
     return out
 
 
@@ -278,7 +343,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="per-camera frame offsets, e.g. c01=0,c02=-12 "
                              "(annotation_frame = export_frame + offset); default all 0")
     parser.add_argument("--offsets-file", default="",
-                        help="JSON file {camera: offset} (e.g. from the sync step)")
+                        help="JSON file {camera: offset}, or a multicam-reid "
+                             "sync.json (its 'offsets' key is used). NOT needed "
+                             "when BoT-SORT and annotation ran on the same "
+                             "synced clips — leave offsets at 0 then.")
+    parser.add_argument("--camera-map", default="",
+                        help="map annotation camera names to export camera ids "
+                             "when names have no number, e.g. "
+                             "cam_north=c01,cam_east=c02,cam_west=c03")
     parser.add_argument("--iou-threshold", type=float, default=0.5)
     parser.add_argument("--keep-all", action="store_true",
                         help="keep rows without a global id (track_id left empty); "
@@ -290,20 +362,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
 
+    camera_map = parse_camera_map(args.camera_map) if args.camera_map else None
+
     export = pd.concat([pd.read_csv(p) for p in args.export], ignore_index=True)
-    matches = load_matches(Path(args.matches))
+    matches = load_matches(Path(args.matches), camera_map)
     tracks_by_camera = {
         cam: load_annotation_tracks(Path(path))
-        for cam, path in parse_key_value_pairs(args.tracks).items()
+        for cam, path in parse_key_value_pairs(args.tracks, camera_map).items()
     }
 
     offsets: dict[int, int] = {}
     if args.offsets_file:
+        offsets_raw = json.loads(Path(args.offsets_file).read_text())
+        if isinstance(offsets_raw, dict) and isinstance(offsets_raw.get("offsets"), dict):
+            offsets_raw = offsets_raw["offsets"]  # multicam-reid sync.json
         offsets.update(
-            {normalize_camera(k): int(v) for k, v in json.loads(Path(args.offsets_file).read_text()).items()}
+            {normalize_camera(k, camera_map): int(v) for k, v in offsets_raw.items()}
         )
     if args.offsets:
-        offsets.update({k: int(v) for k, v in parse_key_value_pairs([args.offsets]).items()})
+        offsets.update(
+            {k: int(v) for k, v in parse_key_value_pairs([args.offsets], camera_map).items()}
+        )
 
     joined = build_track_ids(export, tracks_by_camera, matches, offsets, args.iou_threshold)
 
