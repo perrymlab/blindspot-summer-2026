@@ -32,6 +32,12 @@ generated, GitHub Release `report-2026-06-12` published.
    minority assumption — see `experiments/week06-detector/README.md`.
 4. **Tracker/global-ID merge** so analysis uses `track_id`, not
    `detection_index`. Until then identity-level numbers are placeholders.
+   *Code done (2026-06-12):* `scripts/build_track_ids.py` joins human
+   `matches.json` + per-camera annotation tracks onto BoT-SORT exports by
+   per-frame IoU (methodology: `docs/data/GROUND_TRUTH.md`; tests:
+   `tests/test_build_track_ids.py`, end-to-end verified on synthetic data).
+   *Remaining:* sync + human annotation of selected scenarios (suggest S07,
+   S14, S15; ~20–50 min each) to produce the inputs.
 5. **IDF1 / HOTA / MOTA / IDS extraction** from tracker output (Week 3 gate
    requirement, still unimplemented).
 6. Publish exports (`bash scripts/publish_run_outputs.sh --commit`) and run
@@ -53,13 +59,4 @@ generated, GitHub Release `report-2026-06-12` published.
   (see `docs/setup/RECOVERY.md`).
 - Report server: port **8890** (8888 is JupyterLab), serves `reports/` only.
 - Pushes from the pod use a fine-grained/classic PAT baked into the remote
-  URL; releases need the classic token (org blocked the fine-grained one).
-
-## Decisions log
-
-- 2026-06-12: trimmed videos + merged exports are committable via LFS
-  (`data/trimmed/`, `data/exports/`); raw footage and weights stay out of git.
-- 2026-06-12: progress reports = `reports/<date>/REPORT.md` + stills in git,
-  videos + self-contained HTML on a GitHub Release.
-- 2026-06-10 (Sabrina): scenario window edits in `data/scenario_windows.csv`
-  (#73) — under review, see TODO 1.
+  URL; releases need the classic token (org blocked the fine-grained one)
