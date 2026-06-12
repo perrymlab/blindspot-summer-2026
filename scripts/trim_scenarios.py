@@ -82,7 +82,7 @@ def load_manifest(path: Path, only: set[str] | None) -> list[Window]:
     if not path.exists():
         raise FileNotFoundError(f"manifest not found: {path}")
     rows: list[Window] = []
-    with path.open(newline="", encoding="utf-8") as fh:
+    with path.open(newline="", encoding="utf-8-sig") as fh:
         reader = csv.DictReader(fh)
         for raw in reader:
             scenario = (raw.get("scenario") or "").strip()
