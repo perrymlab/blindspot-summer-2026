@@ -56,7 +56,6 @@ python scripts/analyze_embedding_export.py --input data/exports/S01/S01_clean_al
 ```
 
 ## Alternative: GitHub Release (no LFS quota)
-
 For exports too large for the LFS budget, or for videos, attach them to a
 tagged Release instead:
 
