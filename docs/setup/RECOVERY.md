@@ -88,7 +88,7 @@ optionally the reports HTTP server):
 
 ```bash
 bash scripts/pod_bootstrap.sh           # tools + shell
-bash scripts/pod_bootstrap.sh --serve   # also serve reports/ on port 8888
+bash scripts/pod_bootstrap.sh --serve   # also serve reports/ on port 8890
 ```
 
 ## Prevent the next loss
