@@ -26,6 +26,9 @@ def make_export(rows):
 
 def test_normalize_camera_variants():
     assert normalize_camera("c01") == normalize_camera("cam01") == normalize_camera("c001") == 1
+    # multicam-reid synced clips are named like c01_synced.mp4 -> camera "c01_synced"
+    assert normalize_camera("c01_synced") == 1
+    assert normalize_camera("S07_c02_synced") == 2
     with pytest.raises(ValueError):
         normalize_camera("nodigits")
 
@@ -41,6 +44,49 @@ def test_load_matches_supported_shapes(tmp_path):
         path = tmp_path / f"matches{i}.json"
         path.write_text(json.dumps(shape))
         assert load_matches(path) == {(1, 12): "5", (2, 7): "5"}
+
+
+def test_load_matches_multicam_reid_format(tmp_path):
+    # Real format from https://github.com/figaone/multicam-reid (.reid/matches.json)
+    payload = {
+        "version": 1,
+        "matches": [
+            {"frame": 250, "tracks": {"c01": 12, "c02": 7, "c03": None}},
+            {"frame": 300, "tracks": {"c01": 4, "c02": None, "c03": 9}},
+        ],
+    }
+    path = tmp_path / "matches.json"
+    path.write_text(json.dumps(payload))
+    assert load_matches(path) == {(1, 12): "0", (2, 7): "0", (1, 4): "1", (3, 9): "1"}
+
+
+def test_load_matches_camera_map(tmp_path):
+    payload = {"version": 1, "matches": [{"frame": 1, "tracks": {"cam_north": 12, "cam_east": 7}}]}
+    path = tmp_path / "matches.json"
+    path.write_text(json.dumps(payload))
+    camera_map = {"cam_north": "c01", "cam_east": "c02"}
+    assert load_matches(path, camera_map) == {(1, 12): "0", (2, 7): "0"}
+    with pytest.raises(ValueError, match="camera-map"):
+        load_matches(path)
+
+
+def test_load_annotation_tracks_multicam_reid_format(tmp_path):
+    # Real format: {track_id: {frames: [...], boxes: [[x1,y1,x2,y2],...], ...}}
+    payload = {
+        "12": {
+            "frames": [100, 101],
+            "boxes": [[10, 20, 50, 60], [12, 21, 52, 61]],
+            "classes": [2, 2],
+            "confs": [0.9, 0.88],
+            "class_name": "car",
+        }
+    }
+    path = tmp_path / "c01.tracks.json"
+    path.write_text(json.dumps(payload))
+    tracks = load_annotation_tracks(path)
+    assert len(tracks) == 2
+    assert tracks.iloc[0].tolist() == [100, 12, 10, 20, 50, 60]
+    assert tracks.iloc[1].tolist() == [101, 12, 12, 21, 52, 61]
 
 
 def test_load_matches_rejects_conflicts(tmp_path):

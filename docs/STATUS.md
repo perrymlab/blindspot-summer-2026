@@ -37,7 +37,9 @@ generated, GitHub Release `report-2026-06-12` published.
    per-frame IoU (methodology: `docs/data/GROUND_TRUTH.md`; tests:
    `tests/test_build_track_ids.py`, end-to-end verified on synthetic data).
    *Remaining:* sync + human annotation of selected scenarios (suggest S07,
-   S14, S15; ~20–50 min each) to produce the inputs.
+   S14, S15; ~20–50 min each) using the multicam-reid toolkit
+   (https://github.com/figaone/multicam-reid) — step-by-step walkthrough in
+   `docs/data/ANNOTATION_GUIDE.md`.
 5. **IDF1 / HOTA / MOTA / IDS extraction** from tracker output (Week 3 gate
    requirement, still unimplemented).
 6. Publish exports (`bash scripts/publish_run_outputs.sh --commit`) and run
@@ -59,4 +61,13 @@ generated, GitHub Release `report-2026-06-12` published.
   (see `docs/setup/RECOVERY.md`).
 - Report server: port **8890** (8888 is JupyterLab), serves `reports/` only.
 - Pushes from the pod use a fine-grained/classic PAT baked into the remote
-  URL; releases need the classic token (org blocked the fine-grained one)
+  URL; releases need the classic token (org blocked the fine-grained one).
+
+## Decisions log
+
+- 2026-06-12: trimmed videos + merged exports are committable via LFS
+  (`data/trimmed/`, `data/exports/`); raw footage and weights stay out of git.
+- 2026-06-12: progress reports = `reports/<date>/REPORT.md` + stills in git,
+  videos + self-contained HTML on a GitHub Release.
+- 2026-06-10 (Sabrina): scenario window edits in `data/scenario_windows.csv`
+  (#73) — under review, see TODO 1.
