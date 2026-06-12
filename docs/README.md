@@ -7,6 +7,8 @@ Project documentation is organized by use:
 - `setup/`: local setup and implementation status notes.
 - `botsort-integration/`: BoT-SORT fork, patch, and run instructions.
 
+**Start here for current progress and open TODOs: [`STATUS.md`](STATUS.md).**
+
 Key setup and collaboration documents:
 
 - `setup/SABRINA_QUICKSTART.md`: one-page setup and daily git workflow for Sabrina. Start here if you are Sabrina.

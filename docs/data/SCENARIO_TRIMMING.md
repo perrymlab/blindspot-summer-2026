@@ -99,6 +99,12 @@ safer for low-traffic or twilight scenarios.
   `~/blindspot_data/` and are reproducible by re-running the trim script
   against the committed manifest.
 
+> **TODO (2026-06-12):** several committed manifest rows look like start/END
+> pairs rather than start/DURATION: S01 (20s), S08 (5s), S09-S13 (2-3s) are far
+> below the 120-300s target, and the per-student sheets suggest end-times were
+> entered in `duration_s`. Reconcile with Christine's sheet before trimming or
+> running those scenarios.
+
 ## Filling in the manifest
 
 `data/scenario_windows.csv` has one row per scenario:

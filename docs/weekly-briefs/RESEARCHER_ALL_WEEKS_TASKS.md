@@ -6,7 +6,7 @@ This checklist turns the schedule's researcher responsibilities into concrete ac
 
 ## Current Project Gate
 
-The repository currently supports Week 1 orientation, setup checks, synthetic experiments, and BoT-SORT hook documentation. The group is not yet through the real-data experiment gate.
+The repository supports the full researcher pipeline: setup checks, synthetic experiments, scenario trimming, batch clean/poisoned runs on real trimmed footage (`scripts/run_baselines.py`), and shareable progress reports. As of 2026-06-12, S01 clean + poisoned (eps 0.5) runs are complete; the remaining real-data gates are tracking-metric extraction (IDF1/HOTA/MOTA/IDS) and the tracker/global-ID merge. See `docs/STATUS.md`.
 
 Before claiming full experimental completion, the researcher still needs to confirm:
 
