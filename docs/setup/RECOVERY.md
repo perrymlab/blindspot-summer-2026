@@ -80,6 +80,17 @@ command regenerates them.
 8. Re-run the export and validation per
    `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`.
 
+## After every pod stop/restart
+
+Apt packages and `/root` dotfiles do not survive a RunPod restart. One command
+puts back tmux, ffmpeg, git-lfs, gh, and the conda shell hookup (and
+optionally the reports HTTP server):
+
+```bash
+bash scripts/pod_bootstrap.sh           # tools + shell
+bash scripts/pod_bootstrap.sh --serve   # also serve reports/ on port 8888
+```
+
 ## Prevent the next loss
 
 - **Use persistent storage.** Put `blindspot_data/`, `vendor/BoT-SORT/pretrained/`,
