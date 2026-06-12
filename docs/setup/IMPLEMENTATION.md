@@ -16,11 +16,13 @@ This repository contains the first working implementation layer for the project 
 - ReID poisoning/export hook in `vendor/BoT-SORT/fast_reid/fast_reid_interfece.py`.
 - PRIME CLI flags added to `vendor/BoT-SORT/tools/demo.py` and `vendor/BoT-SORT/tools/mc_demo.py`.
 - Project-side analyzer for exported BoT-SORT embeddings: `scripts/analyze_embedding_export.py`.
+- Scenario trimming workflow and committed window manifest (`scripts/trim_scenarios.py`, `data/scenario_windows.csv`).
+- Batch baseline runner with per-scenario merged exports and run manifest (`scripts/run_baselines.py`).
+- Real clean + poisoned (eps 0.5) S01 runs on trimmed local intersection footage (2026-06-12).
+- Progress report generator (`scripts/make_progress_report.py`), LFS publisher (`scripts/publish_run_outputs.sh`), pod recovery (`scripts/pod_bootstrap.sh`).
 
 ## Not Yet Implemented
 
-- CityFlowV2 download/setup automation.
-- Real CityFlowV2 S01 clean baseline run.
 - Merge from BoT-SORT detection-level embedding exports to tracker/global IDs.
 - Real tracking metric extraction for IDF1, HOTA, MOTA, and IDS.
 - Full experiment matrix across epsilon levels, camera counts, and scenarios.

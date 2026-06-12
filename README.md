@@ -26,11 +26,15 @@ Implemented:
 - Local BoT-SORT clone in `vendor/BoT-SORT`.
 - Patched BoT-SORT branch `prime-reid-poison-export` with ReID poisoning/export flags.
 - Export analyzer for BoT-SORT embedding CSVs.
+- Scenario trimming workflow (`scripts/trim_scenarios.py` + committed window manifest).
+- Batch baseline runner (`scripts/run_baselines.py`): clean + poisoned passes per scenario, merged per-scenario `*_all-cams.csv`, provenance manifest.
+- Real-data runs on trimmed local footage: S01 clean + poisoned (eps 0.5) completed 2026-06-12.
+- Shareable progress reports (`scripts/make_progress_report.py`): score tables, annotated stills/videos, self-contained HTML.
+- LFS publishing of exports/trimmed videos (`scripts/publish_run_outputs.sh`) and GPU-pod recovery (`scripts/pod_bootstrap.sh`).
 
 Not yet implemented:
 
-- Real-data ingestion of locally captured intersection footage end to end.
-- Merge from BoT-SORT detection-level embedding exports to tracker/global IDs.
+- Merge from BoT-SORT detection-level embedding exports to tracker/global IDs (analysis currently uses `detection_index`; identity-level numbers are placeholders until then).
 - Tracking metrics such as IDF1, HOTA, MOTA, and IDS from real tracker output.
 - Publication-quality plots.
 
@@ -74,7 +78,7 @@ Use `prime_mtmc.data.EmbeddingTable.from_csv` to load exported embeddings.
 
 ## Next Engineering Step
 
-Set up BoT-SORT runtime dependencies and weights, organize the locally captured intersection footage into `<data root>/S0N/c00K/vdo.mp4` (`~/blindspot_data`, or `/workspace/blindspot_data` on a GPU box) and trim it per `docs/data/SCENARIO_TRIMMING.md`, then batch-export clean and poisoned embeddings with `scripts/run_baselines.py` (see `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`, "Batch mode").
+S01 clean + poisoned (eps 0.5) runs are complete on trimmed footage. Next: fix the suspect rows in `data/scenario_windows.csv` (see `docs/STATUS.md`), run the full sweep (`python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`), then implement the tracker/global-ID merge and IDF1/HOTA/MOTA/IDS metric extraction. Current progress and open TODOs: `docs/STATUS.md`.
 
 ## BoT-SORT Clone
 

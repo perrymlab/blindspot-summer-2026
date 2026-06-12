@@ -4,6 +4,14 @@ Source of truth: `docs/schedules/PRIME_Schedule_new_revised.pdf`.
 
 This plan lists the remaining implementation path from the current repository scaffold to a complete real-data research pipeline.
 
+> **Status (2026-06-12):** Gate 1 complete (local intersection footage replaced
+> CityFlowV2; GPU pod environment verified). Gate 2 partially complete: clean
+> S01 runs done on trimmed footage, but IDF1/HOTA/MOTA/IDS extraction is still
+> unimplemented. Gate 3 partially complete: S01 poisoned at eps 0.5; eps 0.1
+> and 1.0 pending. Gate 4 partially complete: analyzer runs end to end but on
+> `detection_index` (tracker/global-ID merge pending). Gates 5-6 not started.
+> See `docs/STATUS.md` for the live TODO list.
+
 ## Gate 1: Environment And Data
 
 Owner: Sabrina.

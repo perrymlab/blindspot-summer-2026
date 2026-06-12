@@ -12,6 +12,13 @@ Goal: shift embeddings from cameras c01 and c02 in CityFlowV2 S01 and compare cl
 - Epsilon values: `0.1`, `0.5`, `1.0`.
 - Poisoned cameras: `c01,c02`.
 
+> **Status (2026-06-12):** S01 poisoned at eps 0.5 (cameras c01,c02, seed 7)
+> via the batch runner. Full documented sweep:
+> `python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`
+> (already-completed runs are skipped). Note the majority-poisoned detector
+> caveat in `experiments/week06-detector/README.md` -- consider adding a
+> single-camera sweep (`--poison-cameras c01`).
+
 ## Researcher Prerequisites
 
 - Confirm perturbation is applied before or after feature normalization.

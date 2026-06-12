@@ -10,6 +10,12 @@ Goal: run BoT-SORT-ReID on clean local `blindspot_data` Scenario S01 and log IDF
 > `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`) -- students do not run
 > BoT-SORT.
 
+> **Status (2026-06-12):** S01 clean runs completed on trimmed footage via
+> `python scripts/run_baselines.py --scenarios S01 --apply` (see the batch-mode
+> section of the GPU runbook). Remaining for this gate: clean runs for the
+> other scenarios (`--all`), the run log + `results/week03/` summary, and the
+> IDF1/HOTA/MOTA/IDS extraction path (not yet implemented).
+
 ## Researcher Prerequisites
 
 - Local `blindspot_data` S01 path confirmed in local notes.
