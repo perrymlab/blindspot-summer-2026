@@ -236,8 +236,22 @@ def main() -> int:
             inline.append(f"{line}</{tag[1:]}>" if not line.endswith(">") else line)
         else:
             inline.append(f"<p>{line}</p>" if line.strip() else "")
+    # Embed videos as base64 data URIs so report.html works as a SINGLE
+    # downloaded file (GitHub serves release assets as downloads; relative
+    # video paths would be dead links). Cap total embedded size to keep the
+    # file mailable; clips over budget fall back to a named reference.
+    embed_budget = 80 * 1024 * 1024  # ~80 MB of raw video -> ~107 MB html
+    embedded = 0
     for v in sorted(videos_dir.glob("*.mp4")):
-        inline.append(f"<h3>{v.stem}</h3><video controls width=640 src='videos/{v.name}'></video>")
+        size = v.stat().st_size
+        if embedded + size <= embed_budget:
+            b64 = base64.b64encode(v.read_bytes()).decode()
+            inline.append(f"<h3>{v.stem}</h3>"
+                          f"<video controls width=640 src='data:video/mp4;base64,{b64}'></video>")
+            embedded += size
+        else:
+            inline.append(f"<h3>{v.stem}</h3><p>(clip too large to embed -- "
+                          f"download <tt>{v.name}</tt> from the GitHub Release)</p>")
     (report_dir / "report.html").write_text(
         "<html><meta charset='utf-8'><body style='font-family:sans-serif;max-width:900px;margin:auto'>"
         + "\n".join(inline) + "</body></html>", encoding="utf-8")
