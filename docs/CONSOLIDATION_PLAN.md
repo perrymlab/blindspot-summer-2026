@@ -1,0 +1,156 @@
+# Repo Consolidation Plan
+
+**Created:** 2026-06-13  
+**Why:** The repo has grown fast. Docs contradict each other, TODOs are stale,
+week tracking is missing, and students have three conflicting entry points.
+This document is the single fix plan — work through it top to bottom.
+
+---
+
+## Priority 1 — Fix immediately (blocks everything else)
+
+### 1a. Resolve merge conflict in SCENARIO_TRIMMING.md
+**File:** `docs/data/SCENARIO_TRIMMING.md` lines 199–203  
+Conflict: `"Sabrina"` vs. `"Dr. Perry"` — never resolved.  
+**Fix:** Delete the conflict markers and pick one name. Five-minute job.
+
+### 1b. Fix `data/scenario_windows.csv`
+**Problem:** S01=20s, S08=5s, S09–S13=2–3s — these are start/end pairs mistakenly
+entered as durations. `data/edited scenario windows.csv` has correct values.  
+**Fix:**
+1. Open `data/scenario_windows.csv` and `data/edited scenario windows.csv` side by side
+2. Reconcile with Christine's copy (`papers/christine/scenario_windows_christine...`)
+3. Get Sabrina to approve (that's what the trimming doc says to do)
+4. Delete both alternate files; leave only `data/scenario_windows.csv`
+5. Re-trim and re-run the affected scenarios
+
+**Blocks:** Full sweep (TODO #2), all downstream detector metrics, annotation coverage.
+
+### 1c. Update STATUS.md to match reality
+**Problem:** STATUS.md says "S01 done; other scenarios pending" but
+`reports/2026-06-12/REPORT.md` shows runs for S01–S18.  
+**Likely explanation:** The 2026-06-12 batch ran all scenarios that had valid trim
+windows at the time, so S02–S07, S14–S18 are actually done (clean + poisoned
+@ eps 0.5). S08–S13 are probably garbage because of the bad trim windows.  
+**Fix:** Update the gate table in STATUS.md row by row to reflect what's
+actually been run. Add a "Last verified" date to each gate row.
+
+---
+
+## Priority 2 — Consolidate documentation (confusion / duplication)
+
+### 2a. Student entry point — pick ONE document
+Currently three places say different things about the student workflow:
+- `docs/LOCAL_STUDENT_HANDOFF.md` (full plain-English guide)
+- `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md` (near-duplicate)
+- `docs/README.md` (just says "read STATUS.md")
+
+**Fix:**
+1. Keep `docs/LOCAL_STUDENT_HANDOFF.md` as the canonical student guide
+2. Delete `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md` (it adds nothing new)
+3. Update `docs/README.md` to link `LOCAL_STUDENT_HANDOFF.md` directly
+4. Add one line to the repo root `README.md` under "Students": "→ docs/LOCAL_STUDENT_HANDOFF.md"
+
+### 2b. BoT-SORT runbook — pick ONE
+Currently spread across:
+- `docs/botsort-integration/BOTSORT_INTEGRATION.md` (setup & patch)
+- `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md` (GPU-pod run commands)
+- `docs/setup/IMPLEMENTATION.md` (outdated snapshot, partly overlaps)
+
+**Fix:**
+1. `BOTSORT_INTEGRATION.md` = setup & patch (one-time, keep as-is)
+2. `BOTSORT_GPU_RUNBOOK.md` = run commands (keep, it's the current reference)
+3. Archive `docs/setup/IMPLEMENTATION.md` → `docs/setup/archive/IMPLEMENTATION.md`
+   and add a note at the top: "ARCHIVED — see STATUS.md for current state"
+
+### 2c. Annotation workflow — add `data/annotations/` placeholder
+The annotation pipeline is documented but `data/annotations/` doesn't exist.
+**Fix:** `mkdir data/annotations && echo "# Ground-truth annotations per scenario" > data/annotations/README.md`
+Commit this so the directory exists in git and the path in ANNOTATION_GUIDE.md resolves.
+
+---
+
+## Priority 3 — Week tracking (biggest organizational gap)
+
+### 3a. Create a central experiment index
+There is no log of what was actually run. The run_manifest.csv produced by
+`run_baselines.py` stays in `runs/` (gitignored) and nobody sees it.
+
+**Fix:** After each batch run (on the pod), run:
+```bash
+python scripts/make_progress_report.py  # already done
+cp runs/run_manifest.csv results/weekXX/run_manifest.csv
+git add results/weekXX/run_manifest.csv
+```
+Also create `experiments/INDEX.md` (see 3b below) to link weeks to actual runs.
+
+### 3b. Fill in week README.md files
+Each `results/weekXX/README.md` exists but is empty. **Template to fill in:**
+
+```markdown
+# Week XX results
+
+| Date | Scenarios | Epsilon | Status | Notes |
+|------|-----------|---------|--------|-------|
+| YYYY-MM-DD | S01 | 0.5 | Done | First S01 proof |
+```
+
+**Fill these in now based on what's known:**
+- `results/week03/`: S01 clean baseline done (2026-06-12)
+- `results/week04/`: S01 poisoned @ eps 0.5 done (2026-06-12); eps 0.1, 1.0 pending
+- `results/week06/`: Detector run on S01–S18 (2026-06-12); all on detection_index (placeholder)
+- `results/week05/` and `results/week07/`: Add "Not yet run" and target description
+
+### 3c. Move REPORT.md provenance into results/
+The orphaned `reports/2026-06-12/REPORT.md` has no explanation of what batch
+produced it.
+
+**Fix:** Add to `results/week06/README.md`:
+```markdown
+## 2026-06-12 progress report
+Generated by `make_progress_report.py` on the pod.
+- Covers S01–S18 clean + poisoned @ eps 0.5 (where trim windows valid)
+- Detector metrics are on `detection_index` — NOT real ground-truth identities
+- See results/week07 for ground-truth annotated metrics (TODO)
+Report link: reports/2026-06-12/REPORT.md
+```
+
+---
+
+## Priority 4 — Dead code / minor cleanup
+
+### 4a. check_research_readiness.py
+Script exists in `scripts/` but is not called in any current workflow. It was
+useful during initial setup but is now superseded by `pod_bootstrap.sh`.  
+**Fix:** Move to `scripts/archive/check_research_readiness.py` and add a comment
+at the top: `# ARCHIVED — run pod_bootstrap.sh for environment recovery instead`.
+
+### 4b. Duplicate scenario window files
+After fixing 1b above, delete:
+- `data/edited scenario windows.csv`
+- (leave Christine's copy in `papers/christine/` as-is; it's her reference)
+
+### 4c. workflow_full_test.md
+This is a test of the GitHub protected-branch workflow, not a research doc.
+**Fix:** Move to `docs/setup/archive/workflow_full_test.md`.
+
+---
+
+## Summary — who does what
+
+| Task | Owner | Blocking |
+|------|-------|---------|
+| 1a. Merge conflict fix | Brian | Nothing, 5 min |
+| 1b. Fix scenario_windows.csv | Brian + Sabrina | Full sweep (TODO #2) |
+| 1c. Update STATUS.md gates | Brian | Clarity for team |
+| 2a. Delete duplicate student doc | Brian | Student confusion |
+| 2b. Archive IMPLEMENTATION.md | Brian | BoT-SORT confusion |
+| 2c. Create data/annotations/ placeholder | Brian | Join script paths |
+| 3b. Fill in week README.md files | Brian | Week tracking |
+| 3c. Add REPORT.md provenance note | Brian | Reproducibility |
+| 4a. Archive check_research_readiness.py | Brian | Clutter |
+| 3a. Commit run_manifest.csv after each run | Brian (pod) | Ongoing practice |
+| Annotations (S07, S14, S15) | Brian | Real metrics (TODO #4) |
+
+**Estimated time for all Priority 1–4 tasks (excluding scenario re-runs and annotation):**
+~2–3 hours of editing + one pod batch run.

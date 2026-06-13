@@ -13,14 +13,34 @@ The annotation tool is **multicam-reid**: https://github.com/figaone/multicam-re
 
 ## 0. One-time setup
 
-You need Python 3.10+ on a machine where a GUI window can open (your laptop,
-not the headless pod). A GPU helps but is not required.
+You need Python 3.10+ on a machine where a GUI window can open (your laptop
+or workstation — **not** the headless RunPod pod). A GPU helps but is not
+required.
 
 ```bash
+# Clone next to (not inside) the blindspot repo
+cd ~
 git clone https://github.com/figaone/multicam-reid
 cd multicam-reid
+
+# fish shell:
+python -m venv .venv && source .venv/bin/activate.fish
+# bash/zsh:
+# python -m venv .venv && source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
+
+Use the helper script to download the trimmed videos from the pod (videos must
+be the same ones BoT-SORT processed — see step 1):
+
+```bash
+cd ~/blindspot-summer-2026   # or wherever your repo clone lives
+bash scripts/fetch_annotation_videos.sh S07 S14 S15
+```
+
+This places them at `~/annotation/S07/c01.mp4`, `c02.mp4`, `c03.mp4` (etc.)
+ready for the tool.
 
 ## 1. Prepare a scenario folder
 
@@ -46,7 +66,8 @@ Copy these from the scenario's footage (e.g. `S07/c001/vdo_trim.mp4` → `c01.mp
 ## 2. Start the matcher
 
 ```bash
-python -m multicam_reid match S07
+cd ~/multicam-reid   # must be the repo root, not the package subfolder
+python -m multicam_reid match ~/annotation/S07
 ```
 
 The first time, it will say there are no tracks yet and offer to run
@@ -93,19 +114,49 @@ Tips:
 When every cross-camera vehicle has a color, press `Q`. Done — the human part
 is over.
 
-## 4. Attach the ground truth to the experiment data
+## 4. Save annotations into the repo
 
-Your clicks are stored in `S07/.reid/matches.json`, and the per-camera boxes
-in `S07/.reid/tracks/c01.tracks.json` etc. Now join them onto the BoT-SORT
-embedding export (in the blindspot repo):
+The annotation tool is on your local machine; the blindspot repo (and the
+embedding exports) may be elsewhere (pod, Windows box, etc.). Copy the three
+output files into the repo using the helper script:
+
+```bash
+cd ~/blindspot-summer-2026
+bash scripts/save_annotations.sh S07
+```
+
+This copies `matches.json`, `tracks/c0N.tracks.json`, and `sync.json` (if
+present) into `data/annotations/S07/` and prints the next `git commit`
+command. Then commit and push so teammates and the pod can see the ground truth:
+
+```bash
+git add data/annotations/S07
+git commit -m "Add ground-truth annotations for S07 (N matches)"
+git push
+```
+
+To also upload directly to the pod in one step:
+
+```bash
+UPLOAD=1 bash scripts/save_annotations.sh S07
+```
+
+> The annotation tool and the blindspot repo never need to be on the same
+> machine. The three JSON files are the only output that crosses over.
+
+## 5. Attach the ground truth to the experiment data
+
+After saving (step 4), the annotation files are in the repo at
+`data/annotations/S07/`. Run the join on the pod (where the exports live)
+or locally if you pulled exports down:
 
 ```bash
 python scripts/build_track_ids.py \
   --export runs/botsort/S07/S07_poison_c01-c02_eps0.5_seed7_all-cams.csv \
-  --matches /path/to/S07/.reid/matches.json \
-  --tracks c01=/path/to/S07/.reid/tracks/c01.tracks.json \
-  --tracks c02=/path/to/S07/.reid/tracks/c02.tracks.json \
-  --tracks c03=/path/to/S07/.reid/tracks/c03.tracks.json \
+  --matches data/annotations/S07/matches.json \
+  --tracks c01=data/annotations/S07/tracks/c01.tracks.json \
+  --tracks c02=data/annotations/S07/tracks/c02.tracks.json \
+  --tracks c03=data/annotations/S07/tracks/c03.tracks.json \
   --output runs/botsort/S07/S07_poison_c01-c02_eps0.5_seed7_all-cams_tracked.csv
 ```
 
@@ -119,7 +170,7 @@ Run the same command once per export you care about (clean, each epsilon) —
 the **same annotation files work for all of them**, because poisoning changes
 embeddings, not boxes.
 
-## 5. Analyze with real identities
+## 6. Analyze with real identities
 
 ```bash
 python scripts/analyze_embedding_export.py \
