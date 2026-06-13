@@ -43,6 +43,9 @@ def test_detector_flags_strong_poisoning() -> None:
     metrics = camera_detection_metrics(scores, {"c01", "c02"})
 
     assert_true(metrics["recall"] >= 0.5, f"low recall: {metrics}")
+    # One-sided z-score: cleaner-than-typical cameras stay negative, so no honest
+    # camera is flagged as poisoned.
+    assert_true(metrics["fp"] == 0, f"clean camera falsely flagged: {metrics}")
     assert_true(
         set(scores["camera"]) == {"c01", "c02", "c03", "c04", "c05"},
         "detector did not score all cameras",
