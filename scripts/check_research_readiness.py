@@ -1,3 +1,8 @@
+# ARCHIVED — superseded by scripts/pod_bootstrap.sh for GPU pod recovery.
+# Run `bash scripts/pod_bootstrap.sh` to restore the pod environment instead.
+# Kept here for reference; not part of any current workflow.
+# See docs/CONSOLIDATION_PLAN.md §4a.
+
 from __future__ import annotations
 
 import argparse
