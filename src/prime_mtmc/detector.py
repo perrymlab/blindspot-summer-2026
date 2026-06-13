@@ -12,6 +12,14 @@ from .data import EmbeddingTable, cosine_distance
 class DetectorConfig:
     z_threshold: float = 2.0
     min_pairs: int = 3
+    # Whether the variance of a camera's cross-camera distances contributes to
+    # the flag (in addition to the mean). Both are treated as one-sided HIGH
+    # signals: poisoning inflates a camera's same-track distances *and* tends to
+    # spread them (the perturbation lands unevenly across observations after
+    # renormalization). The variance cue is weaker/noisier than the mean, so set
+    # this False to flag on mean distance alone and shrink the false-positive
+    # surface.
+    use_variance: bool = True
 
 
 def camera_consistency_scores(table: EmbeddingTable, config: DetectorConfig) -> pd.DataFrame:
@@ -70,7 +78,14 @@ def camera_consistency_scores(table: EmbeddingTable, config: DetectorConfig) -> 
     scores = pd.DataFrame(camera_rows)
     scores["mean_z_score"] = _robust_z(scores["mean_distance"])
     scores["variance_z_score"] = _robust_z(scores["variance"])
-    scores["z_score"] = scores[["mean_z_score", "variance_z_score"]].max(axis=1)
+    # One-sided: a camera is suspicious when it sits in the HIGH tail. Both
+    # component z-scores are signed, so cameras below the cohort center stay
+    # negative and are never flagged. The variance cue is opt-out (see
+    # DetectorConfig.use_variance); when disabled we flag on mean distance alone.
+    if config.use_variance:
+        scores["z_score"] = scores[["mean_z_score", "variance_z_score"]].max(axis=1)
+    else:
+        scores["z_score"] = scores["mean_z_score"]
     scores["flagged"] = (scores["z_score"] >= config.z_threshold) & (
         scores["pair_count"] >= config.min_pairs
     )
@@ -78,12 +93,23 @@ def camera_consistency_scores(table: EmbeddingTable, config: DetectorConfig) -> 
 
 
 def _robust_z(values: pd.Series) -> pd.Series:
+    """Signed robust z-score (median / MAD). Positive => above the cohort center.
+
+    Signed, not absolute, on purpose. Embedding poisoning only *raises* a
+    camera's cross-camera distance (and its spread), so the attack signal lives
+    entirely in the high tail and the detector flags ``z >= threshold``. A
+    two-sided ``|z|`` would also flag an unusually *clean* camera; that misfires
+    once poisoned cameras are the majority and drag the median up, turning the
+    honest cameras into the apparent outliers. The MAD itself is still built
+    from absolute deviations (that is its definition); only the returned score
+    keeps its sign.
+    """
     values = values.astype(float)
     center = float(values.median())
     mad = float((values - center).abs().median())
     if mad > 0:
-        return (values - center).abs() / (1.4826 * mad)
+        return (values - center) / (1.4826 * mad)
     spread = float(values.std(ddof=0))
     if spread == 0:
         return pd.Series([0.0] * len(values), index=values.index)
-    return (values - center).abs() / spread
+    return (values - center) / spread

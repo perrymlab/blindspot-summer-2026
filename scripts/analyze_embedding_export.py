@@ -26,6 +26,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--poisoned-cameras", default="", help="Comma-separated poisoned camera ids")
     parser.add_argument("--z-threshold", type=float, default=1.25)
+    parser.add_argument(
+        "--no-variance",
+        dest="use_variance",
+        action="store_false",
+        help="Flag cameras on mean cross-camera distance alone, ignoring the "
+        "weaker/noisier variance cue (shrinks the false-positive surface).",
+    )
     return parser.parse_args()
 
 
@@ -43,6 +50,16 @@ def main() -> None:
             "For real detection, merge exported embeddings with tracker/global ids first."
         )
 
+    if args.track_column == "detection_index":
+        print(
+            "WARNING: --track-column detection_index is a positional, per-frame "
+            "index with no cross-camera identity, so the consistency scores and "
+            "detection metrics below are a SMOKE CHECK ONLY -- not valid results. "
+            "Join ground-truth ids with scripts/build_track_ids.py and re-run with "
+            "--track-column track_id for real numbers.",
+            file=sys.stderr,
+        )
+
     vectors = np.vstack(
         raw["embedding"].map(lambda value: np.fromstring(str(value), sep=" ")).to_list()
     )
@@ -58,7 +75,9 @@ def main() -> None:
     normalized_path = out_dir / "normalized_embeddings.csv"
     table.to_csv(normalized_path)
 
-    scores = camera_consistency_scores(table, DetectorConfig(z_threshold=args.z_threshold))
+    scores = camera_consistency_scores(
+        table, DetectorConfig(z_threshold=args.z_threshold, use_variance=args.use_variance)
+    )
     scores.to_csv(out_dir / "camera_scores.csv", index=False)
 
     poisoned = {camera.strip() for camera in args.poisoned_cameras.split(",") if camera.strip()}

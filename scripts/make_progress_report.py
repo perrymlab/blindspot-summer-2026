@@ -4,7 +4,12 @@ RESEARCHER tool (GPU box, conda `botsort` env, repo root). For every scenario
 with outputs in runs/botsort/ it:
 
   1. Runs the camera-consistency analysis on the clean and poisoned
-     *_all-cams.csv exports (detector scores + detection metrics).
+     *_all-cams.csv exports (detector scores + detection metrics). When a
+     ground-truth-joined sibling produced by scripts/build_track_ids.py is
+     present next to the merged export (same name + "_tracked.csv", e.g.
+     S07_clean_all-cams_tracked.csv), it is used instead and scored on the
+     real cross-camera `track_id`. Without it, scores fall back to the
+     positional `detection_index` and are labeled SMOKE CHECK ONLY.
   2. Renders annotated bounding-box videos per camera (clean run) from the
      per-camera CSVs + trimmed videos, transcoded to H.264 so they play in
      any browser.
@@ -88,11 +93,40 @@ def md_table(rows: List[dict], columns: Optional[List[str]] = None, floatfmt: in
     return "\n".join(out) + "\n"
 
 
-def analyze(input_csv: Path, scenario: str, out_dir: Path, poisoned: str = "") -> dict:
+def resolve_join(merged_csv: Path) -> tuple[Path, str, bool]:
+    """Prefer the ground-truth-joined export when build_track_ids.py has run.
+
+    build_track_ids.py writes a sibling ``<stem>_tracked.csv`` carrying a real
+    cross-camera ``track_id``. When that file exists we analyze it with
+    ``track_id`` (valid detection metrics). Otherwise we fall back to the raw
+    merged export keyed by ``detection_index`` -- a positional index with no
+    cross-camera identity, usable only as a smoke check, never as a result.
+
+    Returns (csv_to_analyze, track_column, is_ground_truth).
+    """
+    tracked = merged_csv.with_name(f"{merged_csv.stem}_tracked.csv")
+    if tracked.exists():
+        return tracked, "track_id", True
+    return merged_csv, "detection_index", False
+
+
+def basis_note(is_ground_truth: bool) -> str:
+    """Markdown caveat describing what the scores are keyed on."""
+    if is_ground_truth:
+        return ("_Scores keyed on ground-truth global `track_id` "
+                "(joined by `build_track_ids.py`)._\n")
+    return ("_SMOKE CHECK ONLY: no `*_tracked.csv` ground-truth join found, so "
+            "scores are keyed on `detection_index`, a positional index with no "
+            "cross-camera identity. These numbers are NOT valid detection "
+            "metrics. Run `build_track_ids.py` to produce a `*_tracked.csv`._\n")
+
+
+def analyze(input_csv: Path, scenario: str, out_dir: Path, poisoned: str = "",
+            track_column: str = "detection_index") -> dict:
     """Run analyze_embedding_export.py; return dict of result tables."""
     cmd = [sys.executable, "scripts/analyze_embedding_export.py",
            "--input", str(input_csv), "--scenario", scenario,
-           "--track-column", "detection_index", "--out-dir", str(out_dir)]
+           "--track-column", track_column, "--out-dir", str(out_dir)]
     if poisoned:
         cmd += ["--poisoned-cameras", poisoned]
     code = sh(cmd)
@@ -178,16 +212,22 @@ def main() -> int:
         poison_all = sorted(sdir.glob(f"{scenario}_poison_*_all-cams.csv"))
 
         if clean_all:
-            res = analyze(clean_all[0], scenario, work_dir / f"{scenario}_clean")
+            csv_in, track_col, is_gt = resolve_join(clean_all[0])
+            res = analyze(csv_in, scenario, work_dir / f"{scenario}_clean",
+                          track_column=track_col)
             md += ["### Clean run — camera consistency scores", "",
+                   basis_note(is_gt),
                    md_table(res["scores"], ["camera", "mean_distance", "pair_count",
                                             "z_score", "flagged"]), ""]
         for pcsv in poison_all:
             match = POISON_RE.search(pcsv.name)
             cams = match.group("cams").replace("-", ",") if match else ""
             label = match.group(0) if match else pcsv.stem
-            res = analyze(pcsv, scenario, work_dir / f"{scenario}_{label}", poisoned=cams)
+            csv_in, track_col, is_gt = resolve_join(pcsv)
+            res = analyze(csv_in, scenario, work_dir / f"{scenario}_{label}",
+                          poisoned=cams, track_column=track_col)
             md += [f"### Poisoned run (`{label}`) — scores and detection", "",
+                   basis_note(is_gt),
                    md_table(res["scores"], ["camera", "mean_distance", "pair_count",
                                             "z_score", "flagged"]), ""]
             if res["metrics"]:

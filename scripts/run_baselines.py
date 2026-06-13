@@ -166,6 +166,44 @@ def merge_camera_csvs(per_camera: List[Path], merged: Path) -> bool:
     return True
 
 
+def tracked_path(merged: Path) -> Path:
+    """Ground-truth-joined sibling of a merged export (build_track_ids output).
+
+    Must match the name make_progress_report.resolve_join() looks for so the
+    report auto-prefers it: ``<merged_stem>_tracked.csv``.
+    """
+    return merged.with_name(f"{merged.stem}_tracked.csv")
+
+
+def print_ground_truth_handoff(merged_files: List[Path]) -> None:
+    """Print the build_track_ids.py command for each merged export.
+
+    A merged ``*_all-cams.csv`` is keyed only on ``detection_index`` (a
+    positional, per-frame index with no cross-camera identity), so it is a
+    smoke-check input, not a result. Joining ground-truth annotations produces
+    a ``*_tracked.csv`` with a real global ``track_id`` that the detector and
+    make_progress_report.py can trust.
+    """
+    if not merged_files:
+        return
+    print("\nNext: join ground-truth global track ids (analysis/reporting must be")
+    print("keyed on track_id, not the positional detection_index in the merged")
+    print("CSV). For each scenario with completed annotations under")
+    print("data/annotations/<scenario>/ (see scripts/save_annotations.sh):")
+    for merged in merged_files:
+        scenario = merged.parent.name
+        ann = REPO_ROOT / "data" / "annotations" / scenario
+        tracked = tracked_path(merged)
+        print(f"\n  python scripts/build_track_ids.py \\")
+        print(f"    --export {merged} \\")
+        print(f"    --matches {ann}/matches.json \\")
+        print(f"    --tracks c01={ann}/tracks/c01.tracks.json \\")
+        print(f"             c02={ann}/tracks/c02.tracks.json \\")
+        print(f"             c03={ann}/tracks/c03.tracks.json \\")
+        print(f"    --output {tracked}")
+    print("\nmake_progress_report.py auto-prefers these *_tracked.csv files when present.")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     which = parser.add_mutually_exclusive_group(required=True)
@@ -214,6 +252,7 @@ def main() -> int:
             conditions.append((poison_tag(poison_cameras, epsilon, args.seed), epsilon))
 
     failures = 0
+    merged_files: List[Path] = []
     for scenario in scenarios:
         print(f"\n=== {scenario} ===")
         scenario_dir = args.out_root / scenario
@@ -261,14 +300,20 @@ def main() -> int:
                 merged = scenario_dir / f"{scenario}_{label}_all-cams.csv"
                 if not merged.exists() or args.overwrite:
                     merge_camera_csvs(per_camera_csvs, merged)
+                if merged.exists():
+                    merged_files.append(merged)
 
     if not args.apply:
         print("\nPlan only. Re-run with --apply to execute.")
-    elif failures:
+        return 0
+
+    print_ground_truth_handoff(merged_files)
+
+    if failures:
         print(f"\nDone with {failures} failure(s); see messages above and run_manifest.csv.")
         return 1
-    else:
-        print("\nAll runs completed. Hand students the *_all-cams.csv files and run_manifest.csv rows.")
+    print("\nAll runs completed. Hand students the *_tracked.csv (after the join "
+          "above) or the *_all-cams.csv smoke inputs, plus run_manifest.csv rows.")
     return 0
 
 
