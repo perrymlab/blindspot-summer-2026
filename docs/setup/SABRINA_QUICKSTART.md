@@ -206,7 +206,7 @@ Will be rejected with `GH006: Protected branch update failed`. This is by design
 
 ### 4c. Do not force-push or reset shared branches
 
-If something goes wrong, stop and ask. Send Brian:
+If something goes wrong, stop and ask. Send the researcher:
 
 ```bash
 git status

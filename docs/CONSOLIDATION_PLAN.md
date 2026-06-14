@@ -140,17 +140,17 @@ This is a test of the GitHub protected-branch workflow, not a research doc.
 
 | Task | Owner | Blocking |
 |------|-------|---------|
-| 1a. Merge conflict fix | Brian | Nothing, 5 min |
-| 1b. Fix scenario_windows.csv | Brian + Sabrina | Full sweep (TODO #2) |
-| 1c. Update STATUS.md gates | Brian | Clarity for team |
-| 2a. Delete duplicate student doc | Brian | Student confusion |
-| 2b. Archive IMPLEMENTATION.md | Brian | BoT-SORT confusion |
-| 2c. Create data/annotations/ placeholder | Brian | Join script paths |
-| 3b. Fill in week README.md files | Brian | Week tracking |
-| 3c. Add REPORT.md provenance note | Brian | Reproducibility |
-| 4a. Archive check_research_readiness.py | Brian | Clutter |
-| 3a. Commit run_manifest.csv after each run | Brian (pod) | Ongoing practice |
-| Annotations (S07, S14, S15) | Brian | Real metrics (TODO #4) |
+| 1a. Merge conflict fix | Sabrina | Nothing, 5 min |
+| 1b. Fix scenario_windows.csv | Sabrina | Full sweep (TODO #2) |
+| 1c. Update STATUS.md gates | Sabrina | Clarity for team |
+| 2a. Delete duplicate student doc | Sabrina | Student confusion |
+| 2b. Archive IMPLEMENTATION.md | Sabrina | BoT-SORT confusion |
+| 2c. Create data/annotations/ placeholder | Sabrina | Join script paths |
+| 3b. Fill in week README.md files | Sabrina | Week tracking |
+| 3c. Add REPORT.md provenance note | Sabrina | Reproducibility |
+| 4a. Archive check_research_readiness.py | Sabrina | Clutter |
+| 3a. Commit run_manifest.csv after each run | Sabrina (pod) | Ongoing practice |
+| Annotations (S07, S14, S15) | Sabrina | Real metrics (TODO #4) |
 
 **Estimated time for all Priority 1–4 tasks (excluding scenario re-runs and annotation):**
 ~2–3 hours of editing + one pod batch run.

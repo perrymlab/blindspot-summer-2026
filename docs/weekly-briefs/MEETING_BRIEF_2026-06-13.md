@@ -1,4 +1,4 @@
-# Meeting brief — Brian / Dr. Perry, 2026-06-13
+# Meeting brief — Researcher / Dr. Perry, 2026-06-13
 
 **Schedule position: Week 3 — Dataset Curation and Clean Baseline (Gate 2).**
 
@@ -62,7 +62,7 @@ Week 3 depends on this.
 
 ## Housekeeping (brief)
 
-- Git index was corrupt + a stale lock; fixed on Brian's machine.
+- Git index was corrupt + a stale lock; fixed on the researcher's machine.
 - Doc consolidation plan (`docs/CONSOLIDATION_PLAN.md`) addresses stale and
   duplicated docs; STATUS overstates progress relative to a Week 3 position.
 
