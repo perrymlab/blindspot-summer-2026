@@ -26,7 +26,7 @@ identities; real ground-truth requires annotation, see TODO #4).
 | 5. Scalability / boundaries | **Not started** — majority-poisoned caveat documented in week06 README | — |
 | 6. Writing / publication | **Not started** | — |
 
-## TODO — researcher (Sabrina)
+## TODO — researcher (Perry)
 
 > See `docs/CONSOLIDATION_PLAN.md` for the full cleanup plan (stale docs,
 > dead code, week tracking).
@@ -36,49 +36,46 @@ identities; real ground-truth requires annotation, see TODO #4).
 1. **Fix `data/scenario_windows.csv`** ⚠️ CRITICAL  
    S01 (20s), S08 (5s), S09–S13 (2–3s) have wrong durations (start/end
    pairs mistakenly entered as durations). Reconcile with Christine's sheet
-   and `data/edited scenario windows.csv`, get Sabrina's approval, delete
+   and `data/edited scenario windows.csv`, get Perry's approval, delete
    the alternate files, re-trim + re-run affected scenarios.  
    *Blocks: full sweep, annotation coverage, all publishable metrics.*
 
-2. **Resolve merge conflict in `docs/data/SCENARIO_TRIMMING.md`** lines 199–203  
-   "Sabrina" vs. "Dr. Perry" — five-minute fix.
-
 ### Active
 
-3. **Annotate S07, S14, S15** for real cross-camera identity  
-   *In progress (2026-06-13):* Sabrina annotating S07 using multicam-reid
+2. **Annotate S07, S14, S15** for real cross-camera identity  
+   *In progress (2026-06-13):* Perry annotating S07 using multicam-reid
    (https://github.com/figaone/multicam-reid).  
    After each: `bash scripts/save_annotations.sh <scenario>` → commit → run join.  
    Full walkthrough: `docs/data/ANNOTATION_GUIDE.md`.  
    *Unblocks: TODO #4 results, publishable precision/recall.*
 
-4. **Full sweep** (eps 0.1 and 1.0; valid scenarios only)  
+3. **Full sweep** (eps 0.1 and 1.0; valid scenarios only)  
    `python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`  
    inside tmux; completed runs auto-skip. Run after TODO #1 fixes S08–S13.
 
-5. **Single-camera poison sweep** (`--poison-cameras c01`)  
+4. **Single-camera poison sweep** (`--poison-cameras c01`)  
    For the detector's minority assumption test.  
    See `experiments/week06-detector/README.md`.
 
 ### Pending
 
-6. **Fill in week results README.md files**  
+5. **Fill in week results README.md files**  
    `results/week03/` through `results/week07/` are empty placeholders.  
    Add a run table (date, scenarios, epsilon, status) to each.  
    See `docs/CONSOLIDATION_PLAN.md §3b` for the template.
 
-7. **IDF1 / HOTA / MOTA / IDS extraction**  
+6. **IDF1 / HOTA / MOTA / IDS extraction**  
    From tracker output. Week 3 gate requirement, still unimplemented.
 
-8. **Publish run manifest after each batch**  
+7. **Publish run manifest after each batch**  
    After runs: `cp runs/run_manifest.csv results/weekXX/`  
    (currently gitignored and never committed — orphans the REPORT.md).
 
-9. **LFS / Release budget** — decide once full-sweep sizes are known.
+8. **LFS / Release budget** — decide once full-sweep sizes are known.
 
 ## TODO — students (Christine / Floyd)
 
-1. **Wait for annotation (TODO #3 above)** before running the full analysis —
+1. **Wait for annotation (TODO #2 above)** before running the full analysis —
    until then use `--track-column detection_index` and label results as
    placeholder only.
 2. Run `scripts/analyze_embedding_export.py` on published `*_all-cams.csv`
@@ -103,5 +100,5 @@ identities; real ground-truth requires annotation, see TODO #4).
   (`data/trimmed/`, `data/exports/`); raw footage and weights stay out of git.
 - 2026-06-12: progress reports = `reports/<date>/REPORT.md` + stills in git,
   videos + self-contained HTML on a GitHub Release.
-- 2026-06-10 (Sabrina): scenario window edits in `data/scenario_windows.csv`
+- 2026-06-10 (Perry): scenario window edits in `data/scenario_windows.csv`
   (#73) — under review, see TODO 1.
