@@ -36,7 +36,8 @@ In the template's **Container Start Command** (or Docker Command), put:
     bash -lc 'bash /workspace/blindspot-summer-2026/scripts/runpod_resume.sh --serve'
 
 Every time the pod starts, RunPod runs this, which restores tools, hooks conda
-into your shell, optionally serves `reports/`, and starts the idle watcher.
+into your shell, and optionally serves `reports/`. The idle auto-stop watcher is
+off by default; add `--idle` to the command if you want it.
 Adjust the path if your repo lives elsewhere on `/workspace`.
 
 ## Daily use
