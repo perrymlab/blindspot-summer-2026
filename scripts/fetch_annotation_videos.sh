@@ -5,7 +5,8 @@
 # Usage:
 #   ./fetch_annotation_videos.sh [scenario ...]        # default: S07 S14 S15
 #
-# Pod address changes on restart — override via env:
+# Pod address changes on restart. Set it once in scripts/pod.env (copy
+# scripts/pod.env.example), or override per-run via env:
 #   POD_HOST=root@1.2.3.4 POD_PORT=12345 ./fetch_annotation_videos.sh S07
 #
 # Prefers vdo_trim.mp4 (what BoT-SORT processed) and warns if only the raw
@@ -13,11 +14,23 @@
 # See docs/data/ANNOTATION_GUIDE.md.
 set -euo pipefail
 
-HOST="${POD_HOST:-root@103.196.86.102}"
-PORT="${POD_PORT:-17420}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$SCRIPT_DIR/pod.env" ] && . "$SCRIPT_DIR/pod.env"
+
+HOST="${POD_HOST:-}"
+PORT="${POD_PORT:-}"
 KEY="${POD_KEY:-$HOME/.ssh/id_ed25519}"
 REMOTE_ROOT="${POD_DATA:-/workspace/blindspot_data}"
 DEST="${ANNOTATION_DIR:-$HOME/annotation}"
+
+if [ -z "$HOST" ] || [ "$HOST" = "root@CHANGE_ME" ] || [ -z "$PORT" ] || [ "$PORT" = "CHANGE_ME" ]; then
+  echo "ERROR: pod connection not configured."
+  echo "  cp scripts/pod.env.example scripts/pod.env"
+  echo "  then set POD_HOST and POD_PORT in scripts/pod.env"
+  echo "  (RunPod console -> Connect -> SSH gives you the host and port)."
+  exit 1
+fi
 
 SCENARIOS=("$@")
 [ ${#SCENARIOS[@]} -eq 0 ] && SCENARIOS=(S07 S14 S15)

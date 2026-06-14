@@ -16,15 +16,19 @@
 #                    (default: auto-detected from this script's location)
 #   UPLOAD=1         also scp the files to the RunPod pod
 #   POD_HOST / POD_PORT / POD_KEY / POD_REPO
-#                    pod connection settings (see fetch_annotation_videos.sh)
+#                    pod connection settings; set once in scripts/pod.env
+#                    (copy scripts/pod.env.example) or override per-run via env.
 set -euo pipefail
 
-ANNOTATION_DIR="${ANNOTATION_DIR:-$HOME/annotation}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$SCRIPT_DIR/pod.env" ] && . "$SCRIPT_DIR/pod.env"
+
+ANNOTATION_DIR="${ANNOTATION_DIR:-$HOME/annotation}"
 REPO_DIR="${REPO_DIR:-$(dirname "$SCRIPT_DIR")}"
 
-POD_HOST="${POD_HOST:-root@103.196.86.102}"
-POD_PORT="${POD_PORT:-17420}"
+POD_HOST="${POD_HOST:-}"
+POD_PORT="${POD_PORT:-}"
 POD_KEY="${POD_KEY:-$HOME/.ssh/id_ed25519}"
 POD_REPO="${POD_REPO:-/workspace/blindspot-summer-2026}"
 
@@ -62,6 +66,12 @@ for s in "${SCENARIOS[@]}"; do
   echo "  -> $dest"
 
   if [ "${UPLOAD:-0}" = "1" ]; then
+    if [ -z "$POD_HOST" ] || [ "$POD_HOST" = "root@CHANGE_ME" ] || [ -z "$POD_PORT" ] || [ "$POD_PORT" = "CHANGE_ME" ]; then
+      echo "ERROR: UPLOAD=1 but pod connection not configured."
+      echo "  cp scripts/pod.env.example scripts/pod.env"
+      echo "  then set POD_HOST and POD_PORT in scripts/pod.env."
+      exit 1
+    fi
     pod_dest="$POD_REPO/data/annotations/$s"
     echo "  uploading to pod: $pod_dest"
     ssh -p "$POD_PORT" -i "$POD_KEY" "$POD_HOST" "mkdir -p $pod_dest/tracks"
