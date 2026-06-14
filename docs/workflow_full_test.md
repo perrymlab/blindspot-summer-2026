@@ -1,6 +1,6 @@
 # Full GitHub Workflow Test
 
-This document describes how to test the professor/student GitHub workflow end to end without using Brian's or Sabrina's personal GitHub credentials as the student.
+This document describes how to test the professor/student GitHub workflow end to end without using Sabrina's personal GitHub credentials as the student.
 
 The test should confirm:
 
@@ -17,7 +17,7 @@ The test should confirm:
 
 Create one separate GitHub account for the test student.
 
-Use a separate browser profile for this account. Do not sign into the test student account in the same browser profile used for Brian's or Sabrina's account.
+Use a separate browser profile for this account. Do not sign into the test student account in the same browser profile used for Sabrina's account.
 
 ## 2. Configure Repository Access
 
@@ -41,7 +41,7 @@ The required status check should match the workflow job name from `.github/workf
 
 ## 4. Create A Separate Student Clone
 
-Use a separate local clone for the test student so local git settings do not mix with Brian's or Sabrina's working copy.
+Use a separate local clone for the test student so local git settings do not mix with Sabrina's working copy.
 
 ```bash
 cd ~

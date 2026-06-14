@@ -26,7 +26,7 @@ identities; real ground-truth requires annotation, see TODO #4).
 | 5. Scalability / boundaries | **Not started** — majority-poisoned caveat documented in week06 README | — |
 | 6. Writing / publication | **Not started** | — |
 
-## TODO — researcher (Brian / Sabrina)
+## TODO — researcher (Sabrina)
 
 > See `docs/CONSOLIDATION_PLAN.md` for the full cleanup plan (stale docs,
 > dead code, week tracking).
@@ -46,7 +46,7 @@ identities; real ground-truth requires annotation, see TODO #4).
 ### Active
 
 3. **Annotate S07, S14, S15** for real cross-camera identity  
-   *In progress (2026-06-13):* Brian annotating S07 using multicam-reid
+   *In progress (2026-06-13):* Sabrina annotating S07 using multicam-reid
    (https://github.com/figaone/multicam-reid).  
    After each: `bash scripts/save_annotations.sh <scenario>` → commit → run join.  
    Full walkthrough: `docs/data/ANNOTATION_GUIDE.md`.  
