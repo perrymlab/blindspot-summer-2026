@@ -1,11 +1,11 @@
 ﻿scenario,start,duration_s,anchor_notes
-S01,35,20,red jeep co-visible across all cams ~00:54; ~30 vehicles co-visible during window
-S02,150,20,short bus co-visible across all cams ~02:38; ~50 vehicles co-visible during window
-S03,215,20,travel bus co-visible across all cams ~03:47; ~17 vehicles co-visible during window
-S04,397,74,dump truck co-visible across all cams ~07:56; ~28 vehicles co-visible during window
-S05,191,51,powder blue hatchback  co-visible across all cams ~04:01; ~30 vehicles co-visible during window
-S06,76,77,yellow dump truck co-visible across all cams ~02:31; ~35 vehicles co-visible during window
-S07,360,88,green charger co-visible across all cams ~06:26; ~50 vehicles co-visible during window
+S01,35,120,red jeep co-visible across all cams ~00:54; ~30 vehicles co-visible during window
+S02,150,120,short bus co-visible across all cams ~02:38; ~50 vehicles co-visible during window
+S03,215,120,travel bus co-visible across all cams ~03:47; ~17 vehicles co-visible during window
+S04,397,120,dump truck co-visible across all cams ~07:56; ~28 vehicles co-visible during window
+S05,191,120,powder blue hatchback  co-visible across all cams ~04:01; ~30 vehicles co-visible during window
+S06,76,120,yellow dump truck co-visible across all cams ~02:31; ~35 vehicles co-visible during window
+S07,360,120,green charger co-visible across all cams ~06:26; ~50 vehicles co-visible during window
 S08,112,120,yellow camaro co-visible across all cams ~01:51; ~35 vehicles co-visible during window
 S09,408,120,red mini cooper co-visible across all cams ~06:47; ~35 vehicles co-visible during window
 S10,20,120, rusty pickup co-visible across all cams ~00:20; ~roughly 40 vehicles co-visible during window
@@ -16,4 +16,4 @@ S14,38,120,blue suv co-visible across all cams ~00:38; ~roughly 33 vehicles co-v
 S15,7,120, grey sedan co-visible across all cams ~00:07; ~roughly 65 vehicles co-visible during window
 S16,1,120, black SUV with trailer co-visible across all cams ~00:01; ~roughly 23 vehicles co-visible during window
 S17,10,120, white SUV co-visible across all cams ~00:10; ~roughly 40 vehicles co-visible during window
-S18,7,240, Red car co-visible across all cams ~00:07; ~roughly 20 vehicles co-visible during window
+S18,7,120, Red car co-visible across all cams ~00:07; ~roughly 20 vehicles co-visible during window
