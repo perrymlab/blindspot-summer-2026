@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 # Start (resume) a stopped RunPod pod from your LOCAL machine.
-# The pod's container start command then runs runpod_resume.sh automatically,
-# so there's no setup once it boots.
+# The pod's container start command then runs runpod_resume.sh automatically.
 #
-# Needs (in your local shell, NOT on the pod -- the pod is off):
-#   RUNPOD_API_KEY   your RunPod API key
-#   RUNPOD_POD_ID    the pod id to start (or pass --pod-id)
+# On your laptop, configure runpodctl once:  runpodctl config --apiKey=<key>
+# (or set RUNPOD_API_KEY for the GraphQL fallback). RUNPOD_POD_ID or --pod-id
+# selects which pod.
 #
-# Usage:
 #   bash scripts/runpod_start.sh                 # start $RUNPOD_POD_ID
-#   bash scripts/runpod_start.sh --pod-id abc123 # start a specific pod
-#   bash scripts/runpod_start.sh --gpu-count 2   # request 2 GPUs on resume
+#   bash scripts/runpod_start.sh --pod-id abc123
+#   bash scripts/runpod_start.sh --gpu-count 2   # request 2 GPUs (graphql path)
 set -uo pipefail
-
 POD_ID="${RUNPOD_POD_ID:-}"
 GPU_COUNT=1
 while [ $# -gt 0 ]; do
@@ -23,24 +20,18 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
-
-API_KEY="${RUNPOD_API_KEY:-}"
-if [ -z "$POD_ID" ]; then echo "set RUNPOD_POD_ID or pass --pod-id"; exit 1; fi
+[ -n "$POD_ID" ] || { echo "set RUNPOD_POD_ID or pass --pod-id"; exit 1; }
 
 if command -v runpodctl >/dev/null 2>&1; then
+    runpodctl pod start "$POD_ID" 2>/dev/null && exit 0
     runpodctl start pod "$POD_ID" && exit 0
 fi
-
-if [ -z "$API_KEY" ]; then
-    echo "No runpodctl and no RUNPOD_API_KEY -- start the pod from the RunPod console."
-    exit 1
-fi
-
+API_KEY="${RUNPOD_API_KEY:-}"
+[ -n "$API_KEY" ] || { echo "No runpodctl and no RUNPOD_API_KEY -- start from the RunPod console."; exit 1; }
 echo "Resuming pod $POD_ID (gpuCount=$GPU_COUNT)..."
 curl -s --max-time 30 "https://api.runpod.io/graphql?api_key=${API_KEY}" \
     -H 'Content-Type: application/json' \
     -d "{\"query\":\"mutation { podResume(input: {podId: \\\"${POD_ID}\\\", gpuCount: ${GPU_COUNT}}) { id desiredStatus } }\"}"
 echo
-echo "If that returned an error about GPU availability, the GPU type is"
-echo "temporarily unavailable -- retry shortly or create a fresh pod from the"
-echo "template attached to the volume (start command self-configures it)."
+echo "If that errors about GPU availability, the GPU type is temporarily full --"
+echo "retry shortly or create a fresh pod from the template attached to the volume."

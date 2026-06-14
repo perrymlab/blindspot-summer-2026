@@ -100,8 +100,8 @@ echo "== 5/5 idle auto-stop =="
 if [ "$START_IDLE" = "1" ]; then
     if pgrep -f "idle_autostop.sh" >/dev/null; then
         echo "   watcher already running"
-    elif [ -z "${RUNPOD_API_KEY:-}" ]; then
-        echo "   SKIP: RUNPOD_API_KEY not set (add it as a pod env var to enable)"
+    elif ! command -v runpodctl >/dev/null 2>&1 && [ -z "${RUNPOD_API_KEY:-}" ]; then
+        echo "   SKIP: no runpodctl and no RUNPOD_API_KEY -- cannot auto-stop"
     else
         nohup bash "$REPO_ROOT/scripts/idle_autostop.sh" --idle-min "$IDLE_MIN" \
             > /workspace/idle_autostop.log 2>&1 &
