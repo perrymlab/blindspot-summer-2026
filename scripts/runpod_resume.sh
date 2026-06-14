@@ -18,23 +18,26 @@
 #      in every shell, including tmux panes).
 #   3. Verifies the botsort env + key paths are present (warns, never fails).
 #   4. (--serve) starts the reports HTTP server on port 8890.
-#   5. (unless --no-idle) starts the idle auto-stop watcher to save money.
+#   5. (--idle) starts the idle auto-stop watcher to save money. DISABLED by
+#      default for now -- pass --idle to opt in.
 #
 # Flags:
 #   --serve       also start the reports/ HTTP server on port 8890
-#   --no-idle     do NOT start the idle auto-stop watcher
+#   --idle        start the idle auto-stop watcher (off by default)
+#   --no-idle     explicitly disable the idle auto-stop watcher (default)
 #   --idle-min N  idle minutes before auto-stop (default 30)
 set -uo pipefail   # NOTE: no -e; resume must finish even if a step warns
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONDA_SH=/workspace/miniforge3/etc/profile.d/conda.sh
 SERVE=0
-START_IDLE=1
+START_IDLE=0
 IDLE_MIN=30
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --serve) SERVE=1 ;;
+        --idle) START_IDLE=1 ;;
         --no-idle) START_IDLE=0 ;;
         --idle-min) shift; IDLE_MIN="${1:-30}" ;;
         *) echo "unknown flag: $1" ;;
@@ -108,7 +111,7 @@ if [ "$START_IDLE" = "1" ]; then
         echo "   watcher started: stops the pod after ${IDLE_MIN} idle min (log: /workspace/idle_autostop.log)"
     fi
 else
-    echo "   skipped (--no-idle)"
+    echo "   skipped (disabled by default; pass --idle to enable)"
 fi
 
 echo

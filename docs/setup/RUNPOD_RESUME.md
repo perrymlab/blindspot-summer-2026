@@ -61,10 +61,10 @@ template attached to the volume — the start command self-configures it.
     bash scripts/runpod_stop.sh          # pre-stop check, confirm, then stop
     bash scripts/runpod_stop.sh --force  # skip checks/prompt
 
-**Stop (automatic):** the idle watcher started by resume stops the pod after 30
-idle minutes (no GPU load, no heavy job, no attached tmux/SSH). Tune it via the
-resume flags in the start command: `--idle-min 45` to wait longer, `--no-idle`
-to disable. The watcher logs to `/workspace/idle_autostop.log`.
+**Stop (automatic):** the idle watcher is **disabled by default for now**. Pass
+`--idle` to `runpod_resume.sh` to opt in; once enabled it stops the pod after 30
+idle minutes (no GPU load, no heavy job, no attached tmux/SSH). Tune it with
+`--idle-min 45` to wait longer. The watcher logs to `/workspace/idle_autostop.log`.
 
 **Keep it awake when you need to:** while the keep-alive file exists, the watcher
 never stops the pod (no matter how idle it looks).
@@ -76,8 +76,8 @@ never stops the pod (no matter how idle it looks).
 
 | Script | Role |
 |--------|------|
-| `scripts/runpod_resume.sh` | Idempotent resume; wire as the start command. apt tools, conda hookup, sanity check, optional report server, starts idle watcher. |
-| `scripts/idle_autostop.sh` | Background watcher; stops the pod after sustained idle. Needs `RUNPOD_API_KEY`. Honors `/workspace/.keepalive`. |
+| `scripts/runpod_resume.sh` | Idempotent resume; wire as the start command. apt tools, conda hookup, sanity check, optional report server, optional idle watcher (off unless `--idle`). |
+| `scripts/idle_autostop.sh` | Background watcher; stops the pod after sustained idle. Off by default (opt in with `runpod_resume.sh --idle`). Needs `RUNPOD_API_KEY`. Honors `/workspace/.keepalive`. |
 | `scripts/runpod_start.sh` | Start/resume a stopped pod from your laptop. |
 | `scripts/runpod_stop.sh` | Manual safe stop (pre-stop check + confirm). |
 | `scripts/prestop_check.sh` | Read-only check: repo on `/workspace`? uncommitted/unpushed git? job running? |
