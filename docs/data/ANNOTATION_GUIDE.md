@@ -32,10 +32,16 @@ pip install -r requirements.txt
 ```
 
 Use the helper script to download the trimmed videos from the pod (videos must
-be the same ones BoT-SORT processed — see step 1):
+be the same ones BoT-SORT processed — see step 1). First, point the helper at
+the current pod (one time per machine — the pod's host/port change on every
+restart):
 
 ```bash
 cd ~/blindspot-summer-2026   # or wherever your repo clone lives
+cp scripts/pod.env.example scripts/pod.env
+# edit scripts/pod.env: set POD_HOST and POD_PORT
+# (RunPod console -> Connect -> SSH shows them; pod.env is gitignored)
+
 bash scripts/fetch_annotation_videos.sh S07 S14 S15
 ```
 
