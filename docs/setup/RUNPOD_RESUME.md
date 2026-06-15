@@ -29,16 +29,30 @@ off, so it can't use its own runpodctl). On the laptop run once:
 set automatically on the pod; pass `--pod-id` to the start script from the
 laptop.
 
-### 3. Set the resume script as the container start command
+### 3. Run resume on each start (do NOT replace the default start command)
 
-In the template's **Container Start Command** (or Docker Command), put:
+IMPORTANT: RunPod's default Container Start Command runs `/start.sh`, which
+launches JupyterLab and SSH. If you *replace* it with the resume script, Jupyter
+never starts and the pod hangs at "initializing jupyter lab". Don't do that.
 
-    bash -lc 'bash /workspace/blindspot-summer-2026/scripts/runpod_resume.sh --serve'
+**Safe option (recommended):** leave the Container Start Command blank and, after
+each start, run resume once from the web terminal:
 
-Every time the pod starts, RunPod runs this, which restores tools, hooks conda
-into your shell, and optionally serves `reports/`. The idle auto-stop watcher is
-off by default; add `--idle` to the command if you want it.
-Adjust the path if your repo lives elsewhere on `/workspace`.
+    bash /workspace/blindspot-summer-2026/scripts/runpod_resume.sh --serve
+
+This restores tools, hooks conda into your shell, and optionally serves
+`reports/`. The idle auto-stop watcher is off by default; add `--idle` to the
+command if you want it.
+
+**Automatic option:** only if you want it hands-off, run resume *alongside* the
+default startup. Confirm the default exists first (`ls -l /start.sh`), then set
+the Container Start Command to:
+
+    bash -c 'bash /workspace/blindspot-summer-2026/scripts/runpod_resume.sh >/workspace/resume.log 2>&1 & exec /start.sh'
+
+The `& ... exec /start.sh` runs resume in the background and hands off to RunPod's
+normal startup, so Jupyter always comes up even if resume hiccups. Adjust the
+path if your repo lives elsewhere on `/workspace`.
 
 ## Daily use
 
@@ -49,9 +63,10 @@ Adjust the path if your repo lives elsewhere on `/workspace`.
 - **From your laptop:** `bash scripts/runpod_start.sh` (needs `RUNPOD_API_KEY`
   and `RUNPOD_POD_ID` in your *local* shell, since the pod is off).
 
-However you start it, the container start command runs `runpod_resume.sh`
-automatically — open a terminal and conda is already active, in the repo
-directory. Nothing else to do.
+After it starts, run resume — one command in the web terminal:
+`bash /workspace/blindspot-summer-2026/scripts/runpod_resume.sh --serve` (or it
+runs on its own if you set up the "Automatic option" in step 3). Then conda is
+active in the repo directory and the idle watcher is back.
 
 Caveat: a stopped GPU pod can occasionally fail to resume if no GPU of that type
 is free in the region right then. Retry shortly, or create a fresh pod from the
@@ -77,7 +92,7 @@ never stops the pod (no matter how idle it looks).
 
 | Script | Role |
 |--------|------|
-| `scripts/runpod_resume.sh` | Idempotent resume; wire as the start command. apt tools, conda hookup, sanity check, optional report server, optional idle watcher (off unless `--idle`). |
+| `scripts/runpod_resume.sh` | Idempotent resume; run on each start (see step 3). apt tools, conda hookup, sanity check, optional report server, optional idle watcher (off unless `--idle`). |
 | `scripts/idle_autostop.sh` | Background watcher; stops the pod after sustained idle. Off by default (opt in with `runpod_resume.sh --idle`). Needs `RUNPOD_API_KEY`. Honors `/workspace/.keepalive`. |
 | `scripts/runpod_start.sh` | Start/resume a stopped pod from your laptop. |
 | `scripts/runpod_stop.sh` | Manual safe stop (pre-stop check + confirm). |
@@ -89,8 +104,8 @@ never stops the pod (no matter how idle it looks).
   stopped container disk + the volume. Fastest resume. The idle watcher and
   `runpod_stop.sh` do this.
 - **Terminate**: pod destroyed, you pay only for the network volume. Cheapest.
-  To resume, create a new pod from the template attached to the volume — the
-  start command makes it self-configure, same as a stop/start.
+  To resume, create a new pod from the template attached to the volume, then run
+  resume (step 3), same as a stop/start.
 
 ## Recovery
 
