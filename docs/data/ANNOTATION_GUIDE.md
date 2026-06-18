@@ -131,8 +131,19 @@ cd ~/blindspot-summer-2026
 bash scripts/save_annotations.sh S07
 ```
 
+Saving several at once, or every annotation you've completed:
+
+```bash
+bash scripts/save_annotations.sh S07 S14 S15   # a specific list
+bash scripts/save_annotations.sh all           # every completed annotation
+```
+
+`all` auto-discovers every `<scenario>/.reid/matches.json` under
+`ANNOTATION_DIR` (default `~/annotation`), prints the scenarios it found, and
+skips any you haven't annotated yet.
+
 This copies `matches.json`, `tracks/c0N.tracks.json`, and `sync.json` (if
-present) into `data/annotations/S07/` and prints the next `git commit`
+present) into `data/annotations/<scenario>/` and prints the next `git commit`
 command. Then commit and push so teammates and the pod can see the ground truth:
 
 ```bash
@@ -141,10 +152,11 @@ git commit -m "Add ground-truth annotations for S07 (N matches)"
 git push
 ```
 
-To also upload directly to the pod in one step:
+To also upload directly to the pod in one step (works with a list or `all`):
 
 ```bash
 UPLOAD=1 bash scripts/save_annotations.sh S07
+UPLOAD=1 bash scripts/save_annotations.sh all
 ```
 
 > The annotation tool and the blindspot repo never need to be on the same

@@ -45,7 +45,8 @@ identities; real ground-truth requires annotation, see TODO #4).
 2. **Annotate S07, S14, S15** for real cross-camera identity  
    *In progress (2026-06-13):* Perry annotating S07 using multicam-reid
    (https://github.com/figaone/multicam-reid).  
-   After each: `bash scripts/save_annotations.sh <scenario>` → commit → run join.  
+   After each: `bash scripts/save_annotations.sh <scenario>` (or `all` for every
+   completed annotation) → commit → run join.  
    Full walkthrough: `docs/data/ANNOTATION_GUIDE.md`.  
    *Unblocks: TODO #4 results, publishable precision/recall.*
 
