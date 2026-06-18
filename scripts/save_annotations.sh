@@ -9,6 +9,9 @@
 # Usage:
 #   ./save_annotations.sh S07            # save one scenario
 #   ./save_annotations.sh S07 S14 S15    # save several
+#   ./save_annotations.sh all            # every completed annotation found
+#                                        # (any <scenario>/.reid/matches.json
+#                                        #  under ANNOTATION_DIR)
 #
 # Environment overrides (same defaults as fetch_annotation_videos.sh):
 #   ANNOTATION_DIR   where multicam-reid wrote its output  (default: ~/annotation)
@@ -33,7 +36,26 @@ POD_KEY="${POD_KEY:-$HOME/.ssh/id_ed25519}"
 POD_REPO="${POD_REPO:-/workspace/blindspot-summer-2026}"
 
 SCENARIOS=("$@")
-[ ${#SCENARIOS[@]} -eq 0 ] && { echo "Usage: $0 <scenario> [scenario ...]"; exit 1; }
+[ ${#SCENARIOS[@]} -eq 0 ] && { echo "Usage: $0 <scenario> [scenario ...] | all"; exit 1; }
+
+# `all` -> auto-discover every scenario with a completed annotation
+# (works on bash 3.2, e.g. stock macOS — no mapfile).
+if [ ${#SCENARIOS[@]} -eq 1 ] && { [ "${SCENARIOS[0]}" = "all" ] || [ "${SCENARIOS[0]}" = "--all" ]; }; then
+  SCENARIOS=()
+  while IFS= read -r s; do
+    [ -n "$s" ] && SCENARIOS+=("$s")
+  done < <(
+    for d in "$ANNOTATION_DIR"/*/.reid/matches.json; do
+      [ -f "$d" ] || continue
+      basename "$(dirname "$(dirname "$d")")"
+    done | sort
+  )
+  if [ ${#SCENARIOS[@]} -eq 0 ]; then
+    echo "No completed annotations found under $ANNOTATION_DIR (looked for */.reid/matches.json)."
+    exit 1
+  fi
+  echo "Discovered completed scenarios: ${SCENARIOS[*]}"
+fi
 
 for s in "${SCENARIOS[@]}"; do
   reid="$ANNOTATION_DIR/$s/.reid"

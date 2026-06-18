@@ -14,6 +14,7 @@ Human-annotated cross-camera vehicle identities from the multicam-reid toolkit
 ```
 
 These files are created by: `bash scripts/save_annotations.sh <scenario>`
+(use `all` to save every completed annotation at once)
 after annotating with: `python -m multicam_reid match ~/annotation/<scenario>`
 
 See docs/data/ANNOTATION_GUIDE.md for the full workflow.
