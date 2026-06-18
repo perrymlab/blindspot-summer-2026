@@ -25,5 +25,15 @@ P.R.I.M.E. Research Experience · blindspot-summer-2026
 
 [8] Ghorbani, V., Gostar, A. K., Tari, Z., Sohrabi, N., Ghorbani, A., & Hoseinnezhad, R. Robust filtering for multi-object tracking against stealthy measurement-oriented adversarial attacks.(2025).
 
+[9] Sun, W., Jiang, X., Li, D., & Zhao, C. (2024). Diffphysba: diffusion-based physical backdoor attack against person re-identification in real-world. arXiv preprint arXiv:2405.19990.
 
-Last Updated [June 8, 2026]
+[10] Sun, W., Jiang, X., Dou, S., Li, D., Miao, D., Deng, C., & Zhao, C. (2023). Invisible backdoor attack with dynamic triggers against person re-identification. IEEE Transactions on Information Forensics and Security, 19, 307-319.
+
+[11] Bouzidi, H., Liu, H., & Faruque, M. A. A. (2025). See No Evil: Adversarial Attacks Against Linguistic-Visual Association in Referring Multi-Object Tracking Systems. arXiv preprint arXiv:2509.02028.
+
+[12] Hsu, H. M., Huang, T. W., Wang, G., Cai, J., Lei, Z., & Hwang, J. N. (2019, June). Multi-camera tracking of vehicles based on deep features re-id and trajectory-based camera link models. In CVPR workshops (pp. 416-424).
+
+[13] Liu, W., Camps, O., & Sznaier, M. (2017). Multi-camera multi-object tracking. arXiv preprint arXiv:1709.07065.
+
+
+Last Updated [June 18, 2026]
