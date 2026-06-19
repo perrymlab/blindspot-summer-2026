@@ -188,6 +188,19 @@ Run the same command once per export you care about (clean, each epsilon) —
 the **same annotation files work for all of them**, because poisoning changes
 embeddings, not boxes.
 
+**Don't want to type that per export?** Use the batch wrapper. It auto-discovers
+`matches.json` + `tracks/*.tracks.json` and joins every
+`runs/botsort/<scenario>/*_all-cams.csv` (skipping already-joined
+`*_tracked.csv`):
+
+```bash
+bash scripts/build_track_ids_all.sh S07          # one scenario, all its exports
+bash scripts/build_track_ids_all.sh all          # every annotated scenario
+bash scripts/build_track_ids_all.sh all -- --iou-threshold 0.4   # passthrough opts
+```
+
+Run it in an env with pandas (the `botsort` conda env is fine).
+
 ## 6. Analyze with real identities
 
 ```bash
