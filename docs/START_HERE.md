@@ -29,14 +29,16 @@ Header: `camera,frame,detection_index,x1,y1,x2,y2,embedding`.
 | Tier | Scenarios | Use for |
 | --- | --- | --- |
 | **Real ground truth** (when join lands) | S07, S14, S15 | real precision/recall — gated on annotation |
-| **Placeholder-only** (daytime, dense) | S01, S02, S04–S06, S08, S11, S16, S17 | `detection_index` smoke analysis, **labeled placeholder** |
+| **Placeholder-only** (daytime, dense) | S01, S02, **S03**, S04–S06, S08, S11, **S13**, S16, S17 | `detection_index` smoke analysis, **labeled placeholder** |
+| **Low-light caveat** (dusk, partial recovery) | S12·c03, S18 | usable but sparse — label low-light, expect lower coverage |
 | **Smoke-only / skip** (confirmed footage-limited) | S10 (night) | do **not** use for coverage |
-| **Under review** (under-detected, cause TBD) | S03, S12·c03, S13·c03, S18 | hold — being triaged, do not rely on yet |
 
-> Tiers are **not final.** The daytime/placeholder split and the "under review"
-> rows are being finalized by `python scripts/sample_scenario_frames.py`
-> (brightness triage) + per-scenario detector checks. **Always re-check
-> `docs/STATUS.md` Decisions log for the current list before starting.**
+> **Re-export pending (2026-06-19):** the under-detection on S03/S13·c03/etc. was a
+> detector input-size bug (pipeline ran at YOLOX default 640). `run_baselines.py`
+> now defaults `--tsize 1536`; S03 and S13·c03 are daytime and recover fully, so
+> they move to placeholder-usable. **The published CSVs predate this fix** — wait
+> for the re-exported `*_all-cams.csv` files (STATUS.md TODO #1) before trusting
+> coverage. Always re-check the `docs/STATUS.md` Decisions log before starting.
 
 ## What you can do today (before annotation)
 

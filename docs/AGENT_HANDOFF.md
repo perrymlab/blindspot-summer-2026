@@ -43,33 +43,40 @@ executes on the pod.
 
 ## Current state (2026-06-19) — the important recent finding
 
-Re-exported S03/S08–S13/S18 (`--overwrite`). Join coverage was low; diagnosis:
+**The under-detection was a detector input-size bug, now fixed.** The export
+pipeline never set `--tsize`, so every run used YOLOX-x's default **640**, which
+cannot resolve the small/distant vehicles in these wide 1600x1200 intersection
+views. A per-camera tsize sweep settled it (fresh runs, detection counts):
 
-- **Several cameras are under-detected** (few, oversized boxes): S03, S10,
-  S12·c03, S13·c03, S18. The detector is *capable* — same settings give S11·c03
-  = 1742 detections vs S10·c01 = 8; input-size sweep barely moved S10 (tsize
-  640→1280→1536 = 8→89→106); dropping the class filter was a no-op (106==106).
-- **S10 confirmed footage-limited:** sampled frames are ~9 PM dusk; COCO YOLOX-x
-  is daytime-biased → **S10 is smoke-only.**
-- **NOT confirmed for S03 et al.:** S03 is **not** night/low-light (per frame
-  check), so its under-detection has a different, still-open cause. **Do not
-  classify S03/S12·c03/S13·c03/S18 as footage-limited yet** — triage first with
-  `scripts/sample_scenario_frames.py` (DAY/DUSK/NIGHT) + repeat the S10 detector
-  checks per scenario.
-- **Recoverable at lower IoU** (re-join `--iou-threshold 0.2`): S08·c01,
-  S09·c01, S09·c03, S11·c01, S11·c02, S12·c01, S13·c02. **Dense/OK:** S08·c03,
-  S11 (all), S13·c01–c02.
+- S03/c01 (DAY): 24 dets @640 → **1328 @1536**; S13/c03 (DAY): 5 → **1300**. Full
+  daylight, dense annotations — **resolution-limited, fully recoverable @1536.**
+- S12·c03 / S18 (DUSK): 6 → 83 / 155 — resolution + low light, **partial recovery**;
+  usable with a low-light caveat (S18 still cuts off mid-clip).
+- S10 (night): sweep barely moves (8→89→106) → **smoke-only, unchanged.**
+- The "detections stop after frame N" pattern was a red herring: all suspect
+  `vdo_trim.mp4` decode fully (~1200 bright frames) and a fresh @640 run reproduced
+  the stale export exactly — the detector just missed small vehicles until tsize
+  rose.
 
-Full evidence: `STATUS.md` Decisions log 2026-06-19.
+**Fix:** `scripts/run_baselines.py` now has a `--tsize` flag, **default 1536**.
+Default-640 under-counted *every* export (dense daytime scenarios merely looked
+populated via close vehicles), so the next step is a full re-export at 1536
+(`run_baselines --all --overwrite --apply`) — then re-join (lower IoU 0.2 for the
+loose-box cameras) and re-diagnose. **Push the run_baselines.py change to the pod
+before re-exporting.**
+
+Full evidence: `STATUS.md` Decisions log 2026-06-19 ("later").
 
 ## Open threads / next actions
 
-1. User runs `bash scripts/build_track_ids_all.sh S08 S09 S11 S12 S13 -- --iou-threshold 0.2`;
+1. **Full re-export at `--tsize 1536`** (`run_baselines --all --overwrite --apply`,
+   tmux, ~5.5 fps so hours) now that the input-size fix is in. Push the
+   `run_baselines.py` change to the pod first. Then re-join with
+   `bash scripts/build_track_ids_all.sh S08 S09 S11 S12 S13 -- --iou-threshold 0.2`;
    if coverage improves, **fold `--iou-threshold 0.2` into `build_track_ids_all.sh`**
-   as the default for these scenarios.
-2. User runs `python scripts/sample_scenario_frames.py` to triage all 18; then
-   finalize the day/night classification in `STATUS.md` and the table in
-   `docs/START_HERE.md`.
+   as the default for those scenarios.
+2. Frame/tsize triage is **done** (day/night + resolution split finalized in
+   `STATUS.md` Decisions log and the `docs/START_HERE.md` tier table).
 3. Student onboarding: `docs/START_HERE.md` (new) routes students; real metrics
    gated on S07/S14/S15 annotation join (`STATUS.md` TODO #2).
 4. Broader objective (paused): vehicle-capable detector + better visualization

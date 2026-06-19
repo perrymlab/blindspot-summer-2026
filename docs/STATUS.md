@@ -15,16 +15,20 @@ windows are valid); report generated, GitHub Release `report-2026-06-12`
 published. **Update 2026-06-19:** all 18 trim windows are now verified valid
 via `scripts/check_scenario_windows.py` — every window fits its ~600s footage
 and every `vdo_trim.mp4` is a full 120s. The earlier "broken windows" issue is
-resolved; what remains is that the export CSVs for **S03, S08–S13, S18** are
-stale near-empty artifacts from the bad-window era and must be regenerated with
-`run_baselines --overwrite` (see TODO #1).
+resolved. **Update 2026-06-19 (later):** the remaining near-empty exports
+(S03, S12·c03, S13·c03, S18) were *not* stale window artifacts — they were a
+detector input-size bug. The pipeline ran at YOLOX's default `--tsize 640`,
+which can't resolve the small/distant vehicles in these wide intersection views.
+Raising to 1536 recovers daytime scenarios fully (S03/c01 24→1328 dets); this
+affected **all** exports, so a full re-export at the new default is required
+(`run_baselines.py` now defaults `--tsize 1536` — see TODO #1).
 Valid results: **S02–S07, S14–S18** at eps 0.5 on `detection_index` (placeholder
 identities; real ground-truth requires annotation, see TODO #4).
 
 | Gate (REAL_DATA_IMPLEMENTATION_PLAN.md) | Status | Last verified |
 | --- | --- | --- |
 | 1. Environment and data | **Done** (RunPod /workspace persistent; footage replaced CityFlowV2) | 2026-06-12 |
-| 2. Clean baseline | **Partial** — all 18 windows/trims verified valid (2026-06-19); stale exports S03/S08–S13/S18 pending `--overwrite` re-export; IDF1/HOTA/MOTA/IDS not implemented | 2026-06-19 |
+| 2. Clean baseline | **Partial** — all 18 windows/trims verified valid (2026-06-19); detector input-size bug found (ran at tsize 640) → full re-export at `--tsize 1536` pending (TODO #1); IDF1/HOTA/MOTA/IDS not implemented | 2026-06-19 |
 | 3. Poisoning runs | **Partial** — eps 0.5 batch done (valid scenarios); eps 0.1 / 1.0 pending | 2026-06-12 |
 | 4. Detector on real outputs | **Partial** — runs end to end but on `detection_index`; join pipeline code done (build_track_ids.py); annotation in progress (S07, S14, S15) | 2026-06-13 |
 | 5. Scalability / boundaries | **Not started** — majority-poisoned caveat documented in week06 README | — |
@@ -37,15 +41,22 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ### Blocking — do these first
 
-1. **Re-export stale scenarios** — ✅ done (2026-06-19)  
-   Re-exported S03, S08–S13, S18 with `--overwrite`; diagnosed coverage with
-   `scripts/diagnose_join_offsets.py`. Outcome (see Decisions log 2026-06-19):  
-   - **Confirmed smoke-only:** S10 — night/low-light footage (frames ~9 PM),
-     detector-capable but daytime-biased. Do not treat as ground truth.  
-   - **Under-detected, cause UNDER REVIEW:** S03, S12/c03, S13/c03, S18 — few
-     boxes but S03 is *not* night, so not yet classified. Triage before labeling:  
-     `python scripts/sample_scenario_frames.py` then repeat the S10 detector checks.  
-   - **Recoverable at lower IoU** — re-join the rest at `--iou-threshold 0.2`:  
+1. **Re-export ALL scenarios at `--tsize 1536`** — ⚠️ NEW, blocking  
+   Triage (Decisions log 2026-06-19 "later") found the under-detection was the
+   detector input size, not footage: the pipeline ran at YOLOX's default 640.
+   `run_baselines.py` now defaults `--tsize 1536` (proven: S03/c01 24→1328,
+   S13/c03 5→1300). Default-640 under-counted small/distant vehicles in **every**
+   export, so re-export the full set before real analysis:  
+   `python scripts/run_baselines.py --all --overwrite --apply` (in tmux; ~5.5 fps
+   so several hours). Then re-join and re-diagnose. **Push the run_baselines.py
+   change to the pod first** (`--tsize` flag) — pod must be at the commit that has it.  
+   *Triage sub-task — ✅ done (2026-06-19):*  
+   - **S03, S13/c03 — DAY, resolution-limited → recoverable @1536.** Promote to
+     usable after re-export.  
+   - **S12/c03, S18 — DUSK, resolution + low-light → partial @1536.** Usable with
+     low-light caveat (S18 still cuts off mid-clip).  
+   - **S10 — smoke-only, unchanged** (night; tsize does not help).  
+   - **Recoverable at lower IoU** (re-join after re-export):
      `bash scripts/build_track_ids_all.sh S08 S09 S11 S12 S13 -- --iou-threshold 0.2`  
    Alternate manifest `data/edited scenario windows.csv` deleted 2026-06-19.
 
@@ -106,6 +117,37 @@ identities; real ground-truth requires annotation, see TODO #4).
   URL; releases need the classic token (org blocked the fine-grained one).
 
 ## Decisions log
+
+- 2026-06-19 (later): **Under-review under-detection is a DETECTOR INPUT-SIZE bug,
+  not footage — fixed by raising `--tsize`.** The export pipeline never set
+  `--tsize`, so every run used YOLOX-x's default **640**, which cannot resolve the
+  small/distant vehicles in these wide 1600x1200 intersection views. Proven by a
+  per-camera tsize sweep (fresh detector runs, IoU-independent detection counts):
+
+  | camera | light | dets @640 | dets @1536 | frame span @1536 |
+  | --- | --- | --- | --- | --- |
+  | S03/c01 | DAY  | 24 | **1328** | 29–1013 (full clip) |
+  | S13/c03 | DAY  | 5  | **1300** | 27–1098 (full clip) |
+  | S12/c03 | DUSK | 6  | **83**   | 3–1024 (full but sparse) |
+  | S18/c01 | DUSK | 6  | **155**  | 3–545 (still dies mid-clip) |
+
+  The "detections stop after frame N" pattern was a red herring: all suspect
+  `vdo_trim.mp4` decode fully (~1200 frames, bright ~130 luma throughout) and a
+  fresh @640 run reproduced the stale export exactly — the detector simply only
+  caught the occasional close/large vehicle (bus/truck) and missed the small
+  distant ones until the input size was raised. Contrast S10 night, where the same
+  sweep barely moved (8→89→106). **Verdicts:**
+  - **S03, S13/c03 — DAY, resolution-limited → fully recoverable @1536** (not
+    footage-limited). Promote to usable after re-export.
+  - **S12/c03, S18 — DUSK, resolution + low-light → partial @1536** (full-clip span
+    for S12 but sparse; S18 still cuts off at frame 545). Usable with a low-light
+    caveat; between S10 (smoke-only) and the daytime scenarios.
+  - **S10 — unchanged, smoke-only** (night; tsize does not help).
+
+  Fix landed in `scripts/run_baselines.py`: new `--tsize` flag, **default 1536**.
+  Implication: the default-640 under-detection affected **all** prior exports
+  (dense daytime scenarios merely looked populated via their close vehicles), so a
+  full re-export at 1536 is warranted before any real analysis — see TODO #1.
 
 - 2026-06-19: **Several cameras are under-detected (few, oversized boxes) after
   re-export — cause confirmed for S10, still open for the rest.** After the

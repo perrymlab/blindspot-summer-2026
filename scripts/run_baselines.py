@@ -112,7 +112,7 @@ def poison_tag(poison_cameras: List[str], epsilon: float, seed: int) -> str:
 
 def build_command(video: Path, camera_id: str, out_csv: Path,
                   poison_cameras: List[str], epsilon: Optional[float], seed: int,
-                  save_result: bool) -> List[str]:
+                  save_result: bool, tsize: int) -> List[str]:
     cmd = [
         sys.executable, "tools/demo.py", "video",
         "--path", str(video),
@@ -120,6 +120,7 @@ def build_command(video: Path, camera_id: str, out_csv: Path,
         "--ckpt", "pretrained/yolox_x.pth",
         "--prime-classes", "2,3,5,7",
         "--aspect_ratio_thresh", "10",
+        "--tsize", str(tsize),
         "--with-reid",
         "--fast-reid-config", "fast_reid/configs/VeRi/sbs_R50-ibn.yml",
         "--fast-reid-weights", "pretrained/veri_sbs_R50-ibn.pth",
@@ -223,6 +224,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--skip-clean", action="store_true", help="Only run poisoned passes")
     parser.add_argument("--skip-poison", action="store_true", help="Only run clean passes")
+    parser.add_argument("--tsize", type=int, default=1536,
+                        help="Detector input size (square). YOLOX-x's default 640 "
+                             "severely under-detects the small, distant vehicles in "
+                             "these wide intersection views (S03 c01: 24 dets @640 vs "
+                             "1328 @1536); 1536 recovers them. Lower it only for "
+                             "close-up/low-res footage where 640 already saturates.")
     parser.add_argument("--save-result", action="store_true",
                         help="Also write annotated videos (slower, big files)")
     parser.add_argument("--overwrite", action="store_true",
@@ -272,7 +279,7 @@ def main() -> int:
                     print(f"  SKIP {out_csv.name}: already exists (use --overwrite to redo)")
                     continue
                 command = build_command(video, camera_id, out_csv, poison_cameras,
-                                        epsilon, args.seed, args.save_result)
+                                        epsilon, args.seed, args.save_result, args.tsize)
                 printable = " ".join(shlex.quote(part) for part in command)
                 if not args.apply:
                     print(f"  PLAN {out_csv.name}\n       {printable}")
