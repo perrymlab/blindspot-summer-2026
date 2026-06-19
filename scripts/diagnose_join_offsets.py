@@ -3,15 +3,17 @@
 When build_track_ids.py reports low coverage even though the BoT-SORT export is
 detection-rich AND the annotation is dense, the cause is one of:
 
+  * UNDER-DETECTED  - BoT-SORT produced very few boxes on this clip; too little
+                      to score against a dense annotation. An export/detector
+                      problem, not a join setting.
   * LOOSE BOXES     - the two trackers box the same vehicles but not tightly, so
                       matches collapse at IoU 0.5 but recover at lower IoU.
                       Fix: re-join with a lower --iou-threshold.
-  * COORDINATE MISMATCH - export and annotation boxes live in different
-                      coordinate systems (e.g. different resolution / letterbox),
-                      so they can never overlap. Fix: rescale before joining.
-  * TEMPORAL/FPS DRIFT - frame N is a different real moment in the export vs the
-                      annotation (per-camera fps difference), so boxes are off.
-                      A constant --offsets shift won't fix it.
+  * POOR OVERLAP    - even at low IoU few boxes match a dense annotation: the
+                      trackers are boxing largely different vehicles (BoT-SORT a
+                      few close/large ones, the annotation many small/distant).
+  * COORDINATE MISMATCH - boxes live in different coordinate systems (resolution
+                      / letterbox); rare. Fix: rescale before joining.
 
 This is read-only. Per scenario/camera it:
   1. counts export detections vs annotation boxes, plus box sizes and
@@ -93,26 +95,34 @@ def _far(a: float, b: float, ratio: float = 1.3) -> bool:
     return lo > 0 and hi / lo > ratio
 
 
+# A camera with fewer export boxes than this is judged under-detected: there is
+# too little for IoU matching to say anything about coordinates or timing.
+MIN_DET = 30
+
+
 def verdict(short: str, n_det: int, n_ann: int, m05: int, m01: int,
             ext_e: dict, ext_a: dict) -> tuple[str, str]:
-    """Return (tag, message); tag in LOOSE / COORD / TEMPORAL / OK / PARTIAL."""
+    """Return (tag, message); tag in UNDER / LOOSE / OK / COORD / PARTIAL / POOR."""
+    if n_det < MIN_DET:
+        return ("UNDER", f"UNDER-DETECTED -- BoT-SORT produced only {n_det} boxes here "
+                f"(vs {n_ann} annotation boxes); too few to score. Export/detector "
+                f"problem, not a join setting.")
     if m01 >= max(10, 1.6 * m05) and m01 >= 0.4 * n_det:
         return ("LOOSE", f"LOOSE BOXES -- matches rise {m05}->{m01} when IoU drops "
-                f"0.5->0.1; the trackers box the same vehicles but loosely. "
-                f"Re-join with --iou-threshold 0.2 (coverage recoverable).")
-    if m01 < 0.3 * n_det and (_far(ext_e["xmax"], ext_a["xmax"]) or _far(ext_e["ymax"], ext_a["ymax"])):
-        return ("COORD", f"COORDINATE MISMATCH -- export boxes reach x<= {ext_e['xmax']:.0f}, "
-                f"y<= {ext_e['ymax']:.0f} but annotation x<= {ext_a['xmax']:.0f}, "
-                f"y<= {ext_a['ymax']:.0f}: different coordinate system, so boxes can "
-                f"never overlap. Rescale before joining.")
-    if m01 < 0.3 * n_det:
-        return ("TEMPORAL", f"TEMPORAL/FPS DRIFT -- even at IoU 0.1 only {m01}/{n_det} match "
-                f"though annotation is dense ({n_ann} boxes on ~every frame). Frame N is "
-                f"likely a different moment in export vs annotation; a constant offset "
-                f"won't fix it.")
+                f"0.5->0.1; same vehicles, loose boxes. Re-join with --iou-threshold 0.2.")
     if m05 >= 0.5 * n_det:
         return ("OK", f"OK -- {m05}/{n_det} match at IoU 0.5; this camera is fine.")
-    return ("PARTIAL", f"PARTIAL -- {m05}/{n_det} at IoU 0.5, {m01}/{n_det} at 0.1; inspect.")
+    if n_det >= 50 and (_far(ext_e["xmax"], ext_a["xmax"]) or _far(ext_e["ymax"], ext_a["ymax"])):
+        return ("COORD", f"COORDINATE MISMATCH -- export x<= {ext_e['xmax']:.0f}/"
+                f"y<= {ext_e['ymax']:.0f} vs annotation x<= {ext_a['xmax']:.0f}/"
+                f"y<= {ext_a['ymax']:.0f}; rescale before joining.")
+    if m01 >= 0.3 * n_det:
+        return ("PARTIAL", f"PARTIAL -- {m05}/{n_det} at IoU 0.5, {m01}/{n_det} at 0.1; "
+                f"a lower --iou-threshold recovers some.")
+    return ("POOR", f"POOR OVERLAP -- only {m01}/{n_det} match even at IoU 0.1 despite a "
+            f"dense annotation ({n_ann} boxes). BoT-SORT (few, large/close boxes) and the "
+            f"annotation (many, small/distant) are largely boxing different vehicles; "
+            f"lowering IoU helps little.")
 
 
 def main() -> int:
@@ -197,17 +207,22 @@ def main() -> int:
     def group(tag):
         return [f"{s}/{c}" for s, c, t in findings if t == tag]
 
-    loose, coord, temporal = group("LOOSE"), group("COORD"), group("TEMPORAL")
-    if loose:
-        print(f"\nLOOSE ({len(loose)}): re-join with a lower --iou-threshold (~0.2): "
-              + ", ".join(loose))
+    recoverable = group("LOOSE") + group("PARTIAL")
+    if recoverable:
+        print(f"\nRECOVERABLE ({len(recoverable)}): re-join with a lower --iou-threshold "
+              f"(~0.2) to recover coverage: " + ", ".join(recoverable))
+    poor = group("POOR")
+    if poor:
+        print(f"\nPOOR OVERLAP ({len(poor)}): trackers box largely different vehicles; "
+              f"a lower threshold helps little: " + ", ".join(poor))
+    under = group("UNDER")
+    if under:
+        print(f"\nUNDER-DETECTED ({len(under)}): BoT-SORT emitted too few boxes -- re-run "
+              f"detection (lower confidence) or treat as smoke-only: " + ", ".join(under))
+    coord = group("COORD")
     if coord:
-        print(f"\nCOORDINATE MISMATCH ({len(coord)}): export/annotation boxes use different "
-              f"coordinate systems -- needs rescaling, not a re-join: " + ", ".join(coord))
-    if temporal:
-        print(f"\nTEMPORAL/FPS ({len(temporal)}): frame N differs in time between export and "
-              f"annotation -- investigate per-camera fps; a constant offset won't help: "
-              + ", ".join(temporal))
+        print(f"\nCOORDINATE MISMATCH ({len(coord)}): boxes use different coordinate "
+              f"systems -- needs rescaling, not a re-join: " + ", ".join(coord))
     return 0
 
 
