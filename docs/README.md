@@ -9,6 +9,9 @@ Project documentation is organized by use:
 
 **Start here for current progress and open TODOs: [`STATUS.md`](STATUS.md).**
 
+- `START_HERE.md`: one-screen student entry point (setup → data → first tasks). Start here if you are a student.
+- `AGENT_HANDOFF.md`: context for an AI coding agent picking up the repo on a different machine/setup.
+
 Key setup and collaboration documents:
 
 - `setup/SABRINA_QUICKSTART.md`: one-page setup and daily git workflow for Sabrina. Start here if you are Sabrina.
