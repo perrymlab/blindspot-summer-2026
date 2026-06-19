@@ -37,15 +37,15 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ### Blocking — do these first
 
-1. **Re-export stale scenarios** (windows now verified ✅)  
-   `scripts/check_scenario_windows.py` (2026-06-19) confirms all 18 windows fit
-   their ~600s footage and every trim is a full 120s — the old "wrong durations"
-   issue is fixed. Remaining: the export CSVs for **S03, S08–S13, S18** are
-   stale near-empty artifacts from the bad-window era. Regenerate + re-join:  
-   `python scripts/run_baselines.py --scenarios S03,S08,S09,S10,S11,S12,S13,S18 --apply --overwrite`  
-   `bash scripts/build_track_ids_all.sh S03 S08 S09 S10 S11 S12 S13 S18`  
-   Alternate manifest `data/edited scenario windows.csv` deleted 2026-06-19.  
-   *Blocks: full sweep, annotation coverage, all publishable metrics.*
+1. **Re-export stale scenarios** — ✅ done (2026-06-19)  
+   Re-exported S03, S08–S13, S18 with `--overwrite`; diagnosed coverage with
+   `scripts/diagnose_join_offsets.py`. Outcome (see Decisions log 2026-06-19):  
+   - **Footage-limited / smoke-only:** S03, S10, S12/c03, S13/c03, S18 — night/
+     low-light, sparse traffic; detector-confirmed, not fixable by config. Do not
+     treat as ground truth.  
+   - **Recoverable at lower IoU** — re-join the rest at `--iou-threshold 0.2`:  
+     `bash scripts/build_track_ids_all.sh S08 S09 S11 S12 S13 -- --iou-threshold 0.2`  
+   Alternate manifest `data/edited scenario windows.csv` deleted 2026-06-19.
 
 ### Active
 
@@ -105,6 +105,19 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ## Decisions log
 
+- 2026-06-19: **S03, S10, S12/c03, S13/c03, S18 are footage-limited (night/low-light,
+  sparse traffic) — smoke-only, not ground-truth-usable.** After the `--overwrite`
+  re-export, `scripts/diagnose_join_offsets.py` showed these cameras emit very few,
+  oversized boxes (e.g. S10/c01 = 8 det vs 4672 annotation boxes). Detector ruled
+  in via a control: at identical settings S11/c03 → 1742 det while S10/c01 → 8; an
+  input-size sweep barely moved it (tsize 640→1280→1536 gave 8→89→106) and dropping
+  the `--prime-classes` filter was a no-op (106==106), so YOLOX sees ~100 objects of
+  *any* class. Sampled frames confirm ~9 PM dusk footage: only close, headlight-lit
+  vehicles are resolvable (the large boxes); distant vehicles the annotation labels
+  are dim and missed. Not a config/decode/join bug — COCO YOLOX-x is daytime-biased.
+  Fixing would need a night-tuned detector (out of scope). **Recoverable at lower
+  IoU** (re-join `--iou-threshold 0.2`): S08/c01, S09/c01, S09/c03, S11/c01, S11/c02,
+  S12/c01, S13/c02. **Dense/OK:** S08/c03, S11 (all cams), S13/c01–c02.
 - 2026-06-19: scenario windows + trims verified valid for all 18 scenarios
   (`scripts/check_scenario_windows.py`); alternate `data/edited scenario windows.csv`
   deleted. The remaining S03/S08–S13/S18 problem is **stale exports**, not
