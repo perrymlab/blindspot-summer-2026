@@ -1,41 +1,42 @@
-"""Diagnose low annotation-join coverage: sync-offset vs sparse annotation.
+"""Diagnose low annotation-join coverage: why don't export boxes match ground truth.
 
 When build_track_ids.py reports low coverage even though the BoT-SORT export is
-detection-rich, the cause is one of:
+detection-rich AND the annotation is dense, the cause is one of:
 
-  * SYNC OFFSET     - the annotation and the export ran on slightly different
-                      timelines, so boxes that should match are a few frames
-                      apart. Fixable with build_track_ids.py --offsets.
-  * SPARSE ANNOTATION - the annotator labeled far fewer boxes than the detector
-                      produced, so most detections have nothing to match.
-                      Needs more annotation, not a code fix.
-  * SPATIAL MISMATCH- frames align and boxes exist, but they don't overlap
-                      (resolution/scale mismatch or wrong camera mapping).
-                      Try a lower --iou-threshold or --camera-map.
+  * LOOSE BOXES     - the two trackers box the same vehicles but not tightly, so
+                      matches collapse at IoU 0.5 but recover at lower IoU.
+                      Fix: re-join with a lower --iou-threshold.
+  * COORDINATE MISMATCH - export and annotation boxes live in different
+                      coordinate systems (e.g. different resolution / letterbox),
+                      so they can never overlap. Fix: rescale before joining.
+  * TEMPORAL/FPS DRIFT - frame N is a different real moment in the export vs the
+                      annotation (per-camera fps difference), so boxes are off.
+                      A constant --offsets shift won't fix it.
 
 This is read-only. Per scenario/camera it:
-  1. counts export detections vs annotation boxes and their frame ranges,
-  2. sweeps a frame offset to find the alignment that maximizes frame overlap
-     (cheap, no IoU), then
-  3. runs the real IoU join at offset 0 and at the best offset and compares
-     matched / coverage,
-and prints a verdict + the --offsets string to use if a sync offset helps.
+  1. counts export detections vs annotation boxes, plus box sizes and
+     coordinate extents (to catch resolution mismatches),
+  2. runs the real IoU join at several thresholds (0.5/0.3/0.1/0.05), then
+  3. classifies the cause and prints a per-camera verdict + tally.
+
+Note: a frame-offset sweep is NOT used -- these annotations cover ~every frame,
+so frame-number alignment is always ~100% and uninformative.
 
 Auto-discovers the standard layout (data/annotations/<s>/, runs/botsort/<s>/).
 
 Usage:
     python scripts/diagnose_join_offsets.py S11
     python scripts/diagnose_join_offsets.py S03 S08 S09 S10 S11 S12 S13 S18
-    python scripts/diagnose_join_offsets.py all --offset-range 50
+    python scripts/diagnose_join_offsets.py all
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
+from collections import Counter
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -78,50 +79,48 @@ def join_stats(det: pd.DataFrame, cam: int, ann: pd.DataFrame,
     return int(row["matched_to_annotation"]), int(row["with_global_id"]), float(row["coverage"])
 
 
-def best_overlap_offset(det_frames: np.ndarray, ann_frames: np.ndarray,
-                        rng: int) -> tuple[int, int]:
-    """Offset (in [-rng, rng]) maximizing how many det frames land on an ann frame."""
-    ann_set = set(int(f) for f in ann_frames)
-    if not ann_set or det_frames.size == 0:
-        return 0, 0
-    best_o, best_count = 0, -1
-    for o in range(-rng, rng + 1):
-        shifted = det_frames + o
-        count = int(np.count_nonzero(np.isin(shifted, list(ann_set))))
-        if count > best_count or (count == best_count and abs(o) < abs(best_o)):
-            best_o, best_count = o, count
-    return best_o, best_count
+def box_extents(df: pd.DataFrame) -> dict:
+    """Coordinate extents + median box size for a [x1,y1,x2,y2] frame."""
+    return {
+        "xmax": float(df["x2"].max()), "ymax": float(df["y2"].max()),
+        "w": float((df["x2"] - df["x1"]).median()),
+        "h": float((df["y2"] - df["y1"]).median()),
+    }
 
 
-def verdict(short: str, n_det: int, n_ann: int, overlap: int, base_matched: int,
-            best_o: int, best_matched: int) -> str:
-    gain = best_matched - base_matched
-    if best_o != 0 and best_matched >= max(10, 2 * base_matched) and gain >= 0.1 * n_det:
-        return (f"SYNC OFFSET -- shifting this camera by {best_o:+d} frames raises "
-                f"matches {base_matched}->{best_matched}. Re-join with "
-                f"--offsets {short}={best_o}")
-    if overlap >= 0.5 * n_det and best_matched < 0.3 * n_det:
-        if n_ann < 0.5 * n_det:
-            return (f"SPARSE ANNOTATION -- only {n_ann} annotation boxes vs {n_det} "
-                    f"detections; most detections have nothing to match. Annotate more "
-                    f"or accept as smoke-only.")
-        return (f"SPATIAL MISMATCH -- frames align ({overlap}/{n_det} overlap) and "
-                f"{n_ann} ann boxes exist, but boxes don't overlap. Try a lower "
-                f"--iou-threshold or check --camera-map / resolution.")
-    if overlap < 0.3 * n_det:
-        return (f"NO FRAME OVERLAP -- even the best offset lands only {overlap}/{n_det} "
-                f"detections on an annotation frame; annotation likely covers a "
-                f"different time span than this export.")
-    return (f"PARTIAL -- best matches {best_matched}/{n_det} at offset {best_o:+d}; "
-            f"borderline, inspect manually.")
+def _far(a: float, b: float, ratio: float = 1.3) -> bool:
+    lo, hi = min(a, b), max(a, b)
+    return lo > 0 and hi / lo > ratio
+
+
+def verdict(short: str, n_det: int, n_ann: int, m05: int, m01: int,
+            ext_e: dict, ext_a: dict) -> tuple[str, str]:
+    """Return (tag, message); tag in LOOSE / COORD / TEMPORAL / OK / PARTIAL."""
+    if m01 >= max(10, 1.6 * m05) and m01 >= 0.4 * n_det:
+        return ("LOOSE", f"LOOSE BOXES -- matches rise {m05}->{m01} when IoU drops "
+                f"0.5->0.1; the trackers box the same vehicles but loosely. "
+                f"Re-join with --iou-threshold 0.2 (coverage recoverable).")
+    if m01 < 0.3 * n_det and (_far(ext_e["xmax"], ext_a["xmax"]) or _far(ext_e["ymax"], ext_a["ymax"])):
+        return ("COORD", f"COORDINATE MISMATCH -- export boxes reach x<= {ext_e['xmax']:.0f}, "
+                f"y<= {ext_e['ymax']:.0f} but annotation x<= {ext_a['xmax']:.0f}, "
+                f"y<= {ext_a['ymax']:.0f}: different coordinate system, so boxes can "
+                f"never overlap. Rescale before joining.")
+    if m01 < 0.3 * n_det:
+        return ("TEMPORAL", f"TEMPORAL/FPS DRIFT -- even at IoU 0.1 only {m01}/{n_det} match "
+                f"though annotation is dense ({n_ann} boxes on ~every frame). Frame N is "
+                f"likely a different moment in export vs annotation; a constant offset "
+                f"won't fix it.")
+    if m05 >= 0.5 * n_det:
+        return ("OK", f"OK -- {m05}/{n_det} match at IoU 0.5; this camera is fine.")
+    return ("PARTIAL", f"PARTIAL -- {m05}/{n_det} at IoU 0.5, {m01}/{n_det} at 0.1; inspect.")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("scenarios", nargs="+", help="scenario ids or 'all'")
-    parser.add_argument("--offset-range", type=int, default=30,
-                        help="sweep frame offsets in [-N, N] (default: 30)")
-    parser.add_argument("--iou-threshold", type=float, default=0.5)
+    parser.add_argument("--cov-threshold", type=float, default=0.5,
+                        help="IoU used for the reported coverage (default: 0.5); "
+                             "the matched-vs-IoU sweep always shows 0.5/0.3/0.1/0.05")
     args = parser.parse_args()
 
     scenarios = discover_scenarios() if args.scenarios == ["all"] else args.scenarios
@@ -129,7 +128,8 @@ def main() -> int:
         print("No scenarios to diagnose.", file=sys.stderr)
         return 1
 
-    recommended: dict[str, dict[str, int]] = {}
+    findings: list[tuple[str, str, str]] = []
+    sweep_thresholds = sorted({0.5, 0.3, 0.1, 0.05, args.cov_threshold}, reverse=True)
 
     for scenario in scenarios:
         print(f"\n===== {scenario} =====")
@@ -164,46 +164,50 @@ def main() -> int:
                 print(f"  {short}: no detections in export -- skip")
                 continue
 
-            det_frames = det["frame"].astype(int).to_numpy()
-            ann_frames = ann["frame"].astype(int).to_numpy()
-            d_lo, d_hi = int(det_frames.min()), int(det_frames.max())
-            a_lo, a_hi = int(ann_frames.min()), int(ann_frames.max())
+            d_lo, d_hi = int(det["frame"].min()), int(det["frame"].max())
+            a_lo, a_hi = int(ann["frame"].min()), int(ann["frame"].max())
+            ext_e = box_extents(det)
+            ext_a = box_extents(ann)
 
-            best_o, overlap = best_overlap_offset(det_frames, ann_frames, args.offset_range)
+            # IoU-threshold sweep at offset 0 (frames already cover ~every annotation
+            # frame, so a frame-offset sweep is uninformative here).
+            sweep = {thr: join_stats(det, cam, ann, matches, 0, thr) for thr in sweep_thresholds}
+            m05 = sweep.get(0.5, sweep[sweep_thresholds[0]])[0]
+            m01 = sweep.get(0.1, sweep[sweep_thresholds[-1]])[0]
+            cov_g, cov = sweep[args.cov_threshold][1], sweep[args.cov_threshold][2]
 
-            base_m, base_g, base_cov = join_stats(det, cam, ann, matches, 0, args.iou_threshold)
-            if best_o != 0:
-                best_m, best_g, best_cov = join_stats(det, cam, ann, matches, best_o, args.iou_threshold)
-            else:
-                best_m, best_g, best_cov = base_m, base_g, base_cov
+            print(f"  {short}: export={n_det} det (frames {d_lo}..{d_hi}, "
+                  f"box~{ext_e['w']:.0f}x{ext_e['h']:.0f}, x<= {ext_e['xmax']:.0f} y<= {ext_e['ymax']:.0f})")
+            print(f"        annotation={n_ann} boxes ({ann['frame'].nunique()} frames "
+                  f"{a_lo}..{a_hi}, box~{ext_a['w']:.0f}x{ext_a['h']:.0f}, "
+                  f"x<= {ext_a['xmax']:.0f} y<= {ext_a['ymax']:.0f})")
+            print("        matched vs IoU: "
+                  + "  ".join(f"@{thr}={sweep[thr][0]}" for thr in sweep_thresholds)
+                  + f"   (global@{args.cov_threshold}={cov_g}, cov={cov:.3f})")
 
-            print(f"  {short}: export={n_det} det (frames {d_lo}..{d_hi}), "
-                  f"annotation={n_ann} boxes ({ann['frame'].nunique()} frames {a_lo}..{a_hi})")
-            print(f"        frame-overlap best offset {best_o:+d} "
-                  f"({overlap}/{n_det} det land on an ann frame)")
-            print(f"        IoU join @0     : matched={base_m} global={base_g} cov={base_cov:.3f}")
-            if best_o != 0:
-                print(f"        IoU join @{best_o:+d}: matched={best_m} global={best_g} cov={best_cov:.3f}")
-
-            v = verdict(short, n_det, n_ann, overlap, base_m, best_o, best_m)
-            print(f"        verdict: {v}")
-
-            if v.startswith("SYNC OFFSET"):
-                recommended.setdefault(scenario, {})[short] = best_o
+            tag, msg = verdict(short, n_det, n_ann, m05, m01, ext_e, ext_a)
+            print(f"        verdict: {msg}")
+            findings.append((scenario, short, tag))
 
     print("\n" + "=" * 60)
-    if recommended:
-        print("Recommended re-joins with sync offsets:")
-        for scenario, offs in recommended.items():
-            off_str = ",".join(f"{c}={o}" for c, o in offs.items())
-            print(f"  python scripts/build_track_ids.py --export "
-                  f"runs/botsort/{scenario}/{scenario}_clean_all-cams.csv \\")
-            print(f"      --matches data/annotations/{scenario}/matches.json \\")
-            print(f"      --tracks c01=... c02=... c03=... --offsets {off_str} \\")
-            print(f"      --output runs/botsort/{scenario}/{scenario}_clean_all-cams_tracked.csv")
-    else:
-        print("No camera was improved by a frame offset -- low coverage is from sparse "
-              "annotation or spatial mismatch, not sync. See per-camera verdicts above.")
+    tally = Counter(tag for _, _, tag in findings)
+    print("Verdict tally (camera-level): "
+          + ", ".join(f"{t}={n}" for t, n in tally.most_common()))
+
+    def group(tag):
+        return [f"{s}/{c}" for s, c, t in findings if t == tag]
+
+    loose, coord, temporal = group("LOOSE"), group("COORD"), group("TEMPORAL")
+    if loose:
+        print(f"\nLOOSE ({len(loose)}): re-join with a lower --iou-threshold (~0.2): "
+              + ", ".join(loose))
+    if coord:
+        print(f"\nCOORDINATE MISMATCH ({len(coord)}): export/annotation boxes use different "
+              f"coordinate systems -- needs rescaling, not a re-join: " + ", ".join(coord))
+    if temporal:
+        print(f"\nTEMPORAL/FPS ({len(temporal)}): frame N differs in time between export and "
+              f"annotation -- investigate per-camera fps; a constant offset won't help: "
+              + ", ".join(temporal))
     return 0
 
 
