@@ -11,7 +11,7 @@ weights, exported CSVs) live off-git.
 
 | In git (always recoverable) | Off-git (must re-obtain) |
 | --- | --- |
-| PRIME patch (`patches/`) | Raw footage (`blindspot_data/`) -- re-sync from Sabrina |
+| PRIME patch (`patches/`) | Raw footage (`blindspot_data/`) -- re-sync from Dr. Perry |
 | `scripts/setup_repo.py` (recreates + patches BoT-SORT) | Model weights (`pretrained/`) -- re-download, see `DOWNLOADS.md` |
 | `requirements-botsort-py39.txt` (exact pins) | Exported CSVs (`runs/botsort/*.csv`) -- **regenerate** by re-running the demo |
 | Runbook + exact demo command | Annotated `track_vis` videos -- regenerate with `--save_result` |
@@ -64,7 +64,7 @@ command regenerates them.
    - Weights into `vendor/BoT-SORT/pretrained/` (`yolox_x.pth` COCO detector,
      `veri_sbs_R50-ibn.pth` VeRi ReID) -- see `docs/setup/DOWNLOADS.md`.
    - Footage into your data root (`$BLINDSPOT_DATA_ROOT` or `~/blindspot_data`)
-     -- re-sync from Sabrina. If the raw captures are in the original
+     -- re-sync from Dr. Perry. If the raw captures are in the original
      `video N/Intersection-Camera-K_*.mp4` layout, normalize them to the
      project's `S0N/c00K/vdo.mp4` layout (dry-run first, then `--apply`):
      ```bash

@@ -41,15 +41,22 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ### Blocking — do these first
 
-1. **Re-export ALL scenarios at `--tsize 1536`** — ⚠️ NEW, blocking  
+1. **Re-export ALL scenarios at `--tsize 1536`** — ⚠️ blocking students  
    Triage (Decisions log 2026-06-19 "later") found the under-detection was the
    detector input size, not footage: the pipeline ran at YOLOX's default 640.
    `run_baselines.py` now defaults `--tsize 1536` (proven: S03/c01 24→1328,
    S13/c03 5→1300). Default-640 under-counted small/distant vehicles in **every**
-   export, so re-export the full set before real analysis:  
-   `python scripts/run_baselines.py --all --overwrite --apply` (in tmux; ~5.5 fps
-   so several hours). Then re-join and re-diagnose. **Push the run_baselines.py
-   change to the pod first** (`--tsize` flag) — pod must be at the commit that has it.  
+   export. **This is the gate on student embedding analysis** — they need correct
+   clean+poison `*_all-cams.csv`. Ordered sequence:  
+   - **(a) Clean re-export @1536** — 🔄 in progress (pod tmux `reexport`,
+     `--all --skip-poison --overwrite`, log `runs/reexport_clean_1536.log`, ~4 h).  
+   - **(b) Poison re-export @1536** (eps 0.5) — pending; `--all --skip-clean
+     --overwrite` after (a).  
+   - **(c) Publish** new clean+poison `*_all-cams.csv` + bump the "use these"
+     note in `START_HERE.md` (published CSVs predate the fix). Note 1536 CSVs are
+     ~2× larger — revisit LFS/Release budget (TODO #8) first.  
+   - **(d) Re-join annotations** → `*_tracked.csv` (existing joins are 640-stale).  
+   Pod already at the commit with the `--tsize` flag (pushed 2026-06-19).  
    *Triage sub-task — ✅ done (2026-06-19):*  
    - **S03, S13/c03 — DAY, resolution-limited → recoverable @1536.** Promote to
      usable after re-export.  

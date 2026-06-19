@@ -2,7 +2,7 @@
 
 Use Python 3.10 or newer.
 
-This is the concise setup path for the project Python environment. The repository currently uses a local `.venv` by default. The official schedule mentions conda, so Sabrina may choose conda for the group, but the commands below are the supported repository default.
+This is the concise setup path for the project Python environment. The repository currently uses a local `.venv` by default. The official schedule mentions conda, so Dr. Perry may choose conda for the group, but the commands below are the supported repository default.
 
 ## Command Convention (Windows vs macOS/Linux)
 
@@ -70,7 +70,7 @@ python3 scripts/setup_repo.py --skip-bot-sort
 
 ## Conda Alternative
 
-Use this only if Sabrina decides the group should follow the schedule's conda wording exactly.
+Use this only if Dr. Perry decides the group should follow the schedule's conda wording exactly.
 
 ```bash
 conda create -n blindspot-summer-2026 python=3.10
@@ -121,4 +121,4 @@ If BoT-SORT setup fails, complete the Python setup first:
 python scripts/setup_repo.py --skip-bot-sort
 ```
 
-Then ask Sabrina for the BoT-SORT setup target and required model weights.
+Then ask Dr. Perry for the BoT-SORT setup target and required model weights.

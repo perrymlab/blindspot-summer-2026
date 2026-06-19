@@ -14,7 +14,7 @@ This plan lists the remaining implementation path from the current repository sc
 
 ## Gate 1: Environment And Data
 
-Owner: Sabrina.
+Owner: Dr. Perry.
 
 Done when:
 
@@ -41,7 +41,7 @@ python scripts/check_research_readiness.py --cityflow-root <path-to-CityFlowV2> 
 
 ## Gate 2: Clean Baseline
 
-Owner: Sabrina confirms; students run and log.
+Owner: Dr. Perry confirms; students run and log.
 
 Done when:
 
@@ -58,7 +58,7 @@ Repository support:
 
 ## Gate 3: Poisoning Runs
 
-Owner: Sabrina confirms hook/settings; students run and log.
+Owner: Dr. Perry confirms hook/settings; students run and log.
 
 Done when:
 
@@ -74,7 +74,7 @@ Repository support:
 
 ## Gate 4: Detector On Real Outputs
 
-Owner: Sabrina confirms global-ID source and statistics; students run and log.
+Owner: Dr. Perry confirms global-ID source and statistics; students run and log.
 
 Done when:
 
@@ -90,7 +90,7 @@ Repository support:
 
 ## Gate 5: Scalability And Boundary Conditions
 
-Owner: Sabrina confirms paper framing; students run and log.
+Owner: Dr. Perry confirms paper framing; students run and log.
 
 Done when:
 
@@ -107,7 +107,7 @@ Repository support:
 
 ## Gate 6: Writing And Publication
 
-Owner: Sabrina.
+Owner: Dr. Perry.
 
 Done when:
 

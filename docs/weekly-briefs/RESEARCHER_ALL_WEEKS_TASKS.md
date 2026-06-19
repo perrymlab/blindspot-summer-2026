@@ -2,7 +2,7 @@
 
 Source of truth: `docs/schedules/PRIME_Schedule_new_revised.pdf`.
 
-This checklist turns the schedule's researcher responsibilities into concrete actions Sabrina can track. It does not replace the schedule; it is the working checklist for repository coordination, setup, and weekly handoffs.
+This checklist turns the schedule's researcher responsibilities into concrete actions Dr. Perry can track. It does not replace the schedule; it is the working checklist for repository coordination, setup, and weekly handoffs.
 
 ## Current Project Gate
 

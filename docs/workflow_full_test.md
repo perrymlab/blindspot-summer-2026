@@ -1,6 +1,6 @@
 # Full GitHub Workflow Test
 
-This document describes how to test the professor/student GitHub workflow end to end without using Sabrina's personal GitHub credentials as the student.
+This document describes how to test the professor/student GitHub workflow end to end without using Dr. Perry's personal GitHub credentials as the student.
 
 The test should confirm:
 
@@ -10,18 +10,18 @@ The test should confirm:
 - A student can open a pull request into `main`.
 - GitHub Actions runs the `Python tests` check.
 - `main` cannot be updated directly by the student.
-- Sabrina's review is required before merge.
+- Dr. Perry's review is required before merge.
 - The PR can merge only after the required check passes.
 
 ## 1. Create A Test Student Account
 
 Create one separate GitHub account for the test student.
 
-Use a separate browser profile for this account. Do not sign into the test student account in the same browser profile used for Sabrina's account.
+Use a separate browser profile for this account. Do not sign into the test student account in the same browser profile used for Dr. Perry's account.
 
 ## 2. Configure Repository Access
 
-In the real repository, Sabrina should invite the test student account as a collaborator.
+In the real repository, Dr. Perry should invite the test student account as a collaborator.
 
 Grant the test student account `Write` access.
 
@@ -41,7 +41,7 @@ The required status check should match the workflow job name from `.github/workf
 
 ## 4. Create A Separate Student Clone
 
-Use a separate local clone for the test student so local git settings do not mix with Sabrina's working copy.
+Use a separate local clone for the test student so local git settings do not mix with Dr. Perry's working copy.
 
 ```bash
 cd ~
@@ -241,9 +241,9 @@ git branch -D student/direct-push-block-test
 
 Do not force push.
 
-## 10. Review As Sabrina
+## 10. Review As Dr. Perry
 
-Switch to Sabrina's browser profile.
+Switch to Dr. Perry's browser profile.
 
 Confirm:
 
@@ -251,7 +251,7 @@ Confirm:
 - The PR contains only the expected temporary student note.
 - The PR cannot be merged until the required review is submitted.
 
-Approve the PR as Sabrina.
+Approve the PR as Dr. Perry.
 
 Then confirm:
 

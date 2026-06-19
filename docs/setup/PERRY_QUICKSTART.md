@@ -1,6 +1,6 @@
-# Sabrina Quickstart
+# Dr. Perry Quickstart
 
-One-page setup and daily workflow for the repo. Follow this end to end after a fresh clone. If anything in this guide conflicts with another doc, this one wins for Sabrina specifically.
+One-page setup and daily workflow for the repo. Follow this end to end after a fresh clone. If anything in this guide conflicts with another doc, this one wins for Dr. Perry specifically.
 
 Repo: `https://github.com/perrymlab/blindspot-summer-2026`
 
@@ -34,7 +34,7 @@ cd blindspot-summer-2026
 This stamps your commits so they show up as you on GitHub, but only for this repo. It does not change git settings on other projects.
 
 ```bash
-git config user.name "Sabrina Perry"
+git config user.name "Dr. Perry"
 git config user.email "<your-noreply-email>"
 ```
 

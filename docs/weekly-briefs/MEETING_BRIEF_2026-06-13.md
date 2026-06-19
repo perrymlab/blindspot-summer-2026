@@ -71,5 +71,5 @@ Week 3 depends on this.
 - `--poison-cameras` default → `c01` in `scripts/run_baselines.py` (Week 4+).
 - Reconciled manifest at `data/scenario_windows.reconciled.csv` (Week 3, pending
   approval).
-- Fix Sabrina vs. Dr. Perry approver-name inconsistency in
+- Fix Dr. Perry vs. Dr. Perry approver-name inconsistency in
   `docs/data/SCENARIO_TRIMMING.md`.

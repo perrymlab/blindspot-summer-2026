@@ -1,156 +1,97 @@
-# Repo Consolidation Plan
+# Documentation Remediation Plan
 
-**Created:** 2026-06-13  
-**Why:** The repo has grown fast. Docs contradict each other, TODOs are stale,
-week tracking is missing, and students have three conflicting entry points.
-This document is the single fix plan — work through it top to bottom.
+**Rewritten:** 2026-06-19 (replaces the stale 2026-06-13 version, whose Priority 1
+was already done and which referenced files that no longer exist).
 
----
+**The problem:** the repo has ~30 docs with overlapping scope, an incomplete
+`Sabrina → Dr. Perry` rename, dead cross-links, an unresolved merge conflict, and
+no single source of truth — so the same question ("what's done? where do I start?")
+has several conflicting answers.
 
-## Priority 1 — Fix immediately (blocks everything else)
+**The fix is one rule, applied everywhere:**
 
-### 1a. Resolve merge conflict in SCENARIO_TRIMMING.md
-**File:** `docs/data/SCENARIO_TRIMMING.md` lines 199–203  
-Conflict: `"Sabrina"` vs. `"Dr. Perry"` — never resolved.  
-**Fix:** Delete the conflict markers and pick one name. Five-minute job.
-
-### 1b. Fix `data/scenario_windows.csv`
-**Problem:** S01=20s, S08=5s, S09–S13=2–3s — these are start/end pairs mistakenly
-entered as durations. `data/edited scenario windows.csv` has correct values.  
-**Fix:**
-1. Open `data/scenario_windows.csv` and `data/edited scenario windows.csv` side by side
-2. Reconcile with Christine's copy (`papers/christine/scenario_windows_christine...`)
-3. Get Sabrina to approve (that's what the trimming doc says to do)
-4. Delete both alternate files; leave only `data/scenario_windows.csv`
-5. Re-trim and re-run the affected scenarios
-
-**Blocks:** Full sweep (TODO #2), all downstream detector metrics, annotation coverage.
-
-### 1c. Update STATUS.md to match reality
-**Problem:** STATUS.md says "S01 done; other scenarios pending" but
-`reports/2026-06-12/REPORT.md` shows runs for S01–S18.  
-**Likely explanation:** The 2026-06-12 batch ran all scenarios that had valid trim
-windows at the time, so S02–S07, S14–S18 are actually done (clean + poisoned
-@ eps 0.5). S08–S13 are probably garbage because of the bad trim windows.  
-**Fix:** Update the gate table in STATUS.md row by row to reflect what's
-actually been run. Add a "Last verified" date to each gate row.
+> **Live state lives in exactly one file (`STATUS.md`). Every audience has exactly
+> one entry point. Everything else is reference and links to those — it never
+> restates progress.**
 
 ---
 
-## Priority 2 — Consolidate documentation (confusion / duplication)
+## Target information architecture
 
-### 2a. Student entry point — pick ONE document
-Currently three places say different things about the student workflow:
-- `docs/LOCAL_STUDENT_HANDOFF.md` (full plain-English guide)
-- `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md` (near-duplicate)
-- `docs/README.md` (just says "read STATUS.md")
+| Audience | Single entry point | Holds |
+| --- | --- | --- |
+| **Student** | `docs/START_HERE.md` | setup → which CSVs to use → first analysis |
+| **Researcher (Dr. Perry)** | `docs/setup/PERRY_QUICKSTART.md` | env, daily git, running the pipeline |
+| **AI agent / new machine** | `docs/AGENT_HANDOFF.md` | pick up the repo cold |
+| **Everyone, for status** | `docs/STATUS.md` | the *only* place for progress + TODOs |
+| **Index / map** | `docs/README.md` | links only, no state |
 
-**Fix:**
-1. Keep `docs/LOCAL_STUDENT_HANDOFF.md` as the canonical student guide
-2. Delete `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md` (it adds nothing new)
-3. Update `docs/README.md` to link `LOCAL_STUDENT_HANDOFF.md` directly
-4. Add one line to the repo root `README.md` under "Students": "→ docs/LOCAL_STUDENT_HANDOFF.md"
-
-### 2b. BoT-SORT runbook — pick ONE
-Currently spread across:
-- `docs/botsort-integration/BOTSORT_INTEGRATION.md` (setup & patch)
-- `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md` (GPU-pod run commands)
-- `docs/setup/IMPLEMENTATION.md` (outdated snapshot, partly overlaps)
-
-**Fix:**
-1. `BOTSORT_INTEGRATION.md` = setup & patch (one-time, keep as-is)
-2. `BOTSORT_GPU_RUNBOOK.md` = run commands (keep, it's the current reference)
-3. Archive `docs/setup/IMPLEMENTATION.md` → `docs/setup/archive/IMPLEMENTATION.md`
-   and add a note at the top: "ARCHIVED — see STATUS.md for current state"
-
-### 2c. Annotation workflow — add `data/annotations/` placeholder
-The annotation pipeline is documented but `data/annotations/` doesn't exist.
-**Fix:** `mkdir data/annotations && echo "# Ground-truth annotations per scenario" > data/annotations/README.md`
-Commit this so the directory exists in git and the path in ANNOTATION_GUIDE.md resolves.
+Reference docs (setup, data, botsort-integration, templates) are linked from the
+entry points and must not duplicate state or each other.
 
 ---
 
-## Priority 3 — Week tracking (biggest organizational gap)
+## P0 — Contradictions (fix immediately)
 
-### 3a. Create a central experiment index
-There is no log of what was actually run. The run_manifest.csv produced by
-`run_baselines.py` stays in `runs/` (gitignored) and nobody sees it.
+- [x] `docs/README.md` linked dead `SABRINA_QUICKSTART.md` / `SABRINA_PR_REVIEW.md`
+      → repointed to `PERRY_QUICKSTART.md` (2026-06-19).
+- [ ] **Merge conflict** in `docs/data/SCENARIO_TRIMMING.md` L199–203
+      (`Sabrina` vs `Dr. Perry`) — resolve as part of P1.
+- [x] This file no longer references the deleted `LOCAL_STUDENT_HANDOFF.md`.
 
-**Fix:** After each batch run (on the pod), run:
-```bash
-python scripts/make_progress_report.py  # already done
-cp runs/run_manifest.csv results/weekXX/run_manifest.csv
-git add results/weekXX/run_manifest.csv
-```
-Also create `experiments/INDEX.md` (see 3b below) to link weeks to actual runs.
+## P1 — Naming: `Sabrina → Dr. Perry` — ✅ done (2026-06-19)
 
-### 3b. Fill in week README.md files
-Each `results/weekXX/README.md` exists but is empty. **Template to fill in:**
+Confirmed same person — full name **Dr. Sabrina Perry** (Sabrina = first name,
+Perry = surname; org `perrymlab`). Global-replaced `Sabrina → Dr. Perry` across all
+docs, retitled `PERRY_QUICKSTART.md` ("Sabrina Quickstart" → "Dr. Perry Quickstart"),
+fixed the two spots where the old text was already "Dr. Sabrina Perry" / "Sabrina
+Perry" (avoided "Dr. Dr. Perry Perry"), and resolved the SCENARIO_TRIMMING.md merge
+conflict to the Dr. Perry line. This file intentionally still says "Sabrina" because
+it documents the rename.
 
-```markdown
-# Week XX results
+## P2 — Collapse overlapping entry points
 
-| Date | Scenarios | Epsilon | Status | Notes |
-|------|-----------|---------|--------|-------|
-| YYYY-MM-DD | S01 | 0.5 | Done | First S01 proof |
-```
+- Keep the four entry points in the table above; demote everything else to
+  reference.
+- `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`: **keep** — it is the detailed
+  analysis walkthrough that `START_HERE.md` links to (the old plan wrongly called
+  it a duplicate). Strip any lines that restate run status.
+- Archive (don't delete) into `docs/setup/archive/`, each with a one-line
+  "ARCHIVED — see STATUS.md" header:
+  - `docs/setup/IMPLEMENTATION.md` (outdated snapshot, superseded by STATUS + RUNBOOK)
+  - `docs/workflow_full_test.md` (a GitHub-workflow test log, not research)
+  - `docs/setup/GPU_CLOUD_FULL_TEST.md` (test log) — currently untracked; archive or drop.
 
-**Fill these in now based on what's known:**
-- `results/week03/`: S01 clean baseline done (2026-06-12)
-- `results/week04/`: S01 poisoned @ eps 0.5 done (2026-06-12); eps 0.1, 1.0 pending
-- `results/week06/`: Detector run on S01–S18 (2026-06-12); all on detection_index (placeholder)
-- `results/week05/` and `results/week07/`: Add "Not yet run" and target description
+## P3 — Week tracking (the real organizational gap)
 
-### 3c. Move REPORT.md provenance into results/
-The orphaned `reports/2026-06-12/REPORT.md` has no explanation of what batch
-produced it.
+- `results/week03…07/README.md` are empty placeholders. Fill each with a run table
+  (date, scenarios, epsilon, tsize, status) — template in `templates/RUN_LOG_TEMPLATE.md`.
+- After every pod batch: `cp runs/botsort/run_manifest.csv results/weekXX/` and commit
+  (it's gitignored under `runs/`, so the REPORT.md is currently orphaned).
+- Note the `tsize 640 → 1536` re-export (2026-06-19) in the relevant week README so
+  the pre/post-fix CSV split is traceable.
 
-**Fix:** Add to `results/week06/README.md`:
-```markdown
-## 2026-06-12 progress report
-Generated by `make_progress_report.py` on the pod.
-- Covers S01–S18 clean + poisoned @ eps 0.5 (where trim windows valid)
-- Detector metrics are on `detection_index` — NOT real ground-truth identities
-- See results/week07 for ground-truth annotated metrics (TODO)
-Report link: reports/2026-06-12/REPORT.md
-```
+## P4 — Researcher steps that block students (tracked in STATUS.md TODO #1)
 
----
+The doc cleanup is cosmetic next to this. Students cannot analyze embeddings until
+the **correct** (tsize-1536) exports exist and are published:
 
-## Priority 4 — Dead code / minor cleanup
+1. **Clean re-export @1536** — in progress (tmux `reexport` on the pod).
+2. **Poisoned re-export @1536** (eps 0.5, to match) — pending; run after clean.
+3. **Merge → `*_all-cams.csv`** — automatic in `run_baselines.py`.
+4. **Publish** the new clean+poison `*_all-cams.csv` and bump the "use these files"
+   note in `START_HERE.md` (the published CSVs predate the fix).
+5. **Re-join annotations** → `*_tracked.csv` for annotated scenarios (the existing
+   joins are now 640-stale); real metrics still gated on S07/S14/S15 annotation.
 
-### 4a. check_research_readiness.py
-Script exists in `scripts/` but is not called in any current workflow. It was
-useful during initial setup but is now superseded by `pod_bootstrap.sh`.  
-**Fix:** Move to `scripts/archive/check_research_readiness.py` and add a comment
-at the top: `# ARCHIVED — run pod_bootstrap.sh for environment recovery instead`.
-
-### 4b. Duplicate scenario window files
-After fixing 1b above, delete:
-- `data/edited scenario windows.csv`
-- (leave Christine's copy in `papers/christine/` as-is; it's her reference)
-
-### 4c. workflow_full_test.md
-This is a test of the GitHub protected-branch workflow, not a research doc.
-**Fix:** Move to `docs/setup/archive/workflow_full_test.md`.
+Caveat surfaced by the re-export: tsize-1536 CSVs are ~2× larger (S01/c01 clean went
+62 MB-merged → 107 MB single-cam). Revisit the LFS/Release budget (STATUS TODO #8)
+before publishing.
 
 ---
 
-## Summary — who does what
+## Order of operations
 
-| Task | Owner | Blocking |
-|------|-------|---------|
-| 1a. Merge conflict fix | Sabrina | Nothing, 5 min |
-| 1b. Fix scenario_windows.csv | Sabrina | Full sweep (TODO #2) |
-| 1c. Update STATUS.md gates | Sabrina | Clarity for team |
-| 2a. Delete duplicate student doc | Sabrina | Student confusion |
-| 2b. Archive IMPLEMENTATION.md | Sabrina | BoT-SORT confusion |
-| 2c. Create data/annotations/ placeholder | Sabrina | Join script paths |
-| 3b. Fill in week README.md files | Sabrina | Week tracking |
-| 3c. Add REPORT.md provenance note | Sabrina | Reproducibility |
-| 4a. Archive check_research_readiness.py | Sabrina | Clutter |
-| 3a. Commit run_manifest.csv after each run | Sabrina (pod) | Ongoing practice |
-| Annotations (S07, S14, S15) | Sabrina | Real metrics (TODO #4) |
-
-**Estimated time for all Priority 1–4 tasks (excluding scenario re-runs and annotation):**
-~2–3 hours of editing + one pod batch run.
+1. **P4** (unblocks students — highest value; compute already running).
+2. **P1 decision** → then execute P1 rename + the SCENARIO_TRIMMING conflict.
+3. **P0/P2/P3** doc edits (a couple of hours of editing, no compute).

@@ -125,7 +125,7 @@ Column rules:
 - **`duration_s`**: window length in seconds. Aim for 120 to 300.
 - **`anchor_notes`**: free text. State (a) at least one specific vehicle that
   is visible in all three cameras within the window, and (b) a rough count of
-  total co-visible vehicles during the window. This is what Sabrina reads
+  total co-visible vehicles during the window. This is what Dr. Perry reads
   during PR review.
 
 Rows with empty `start` or `duration_s` are skipped by the tooling, so the
@@ -196,11 +196,7 @@ glance that the anchor vehicle named in `anchor_notes` really is present.
 2. Fill in one or more rows of `data/scenario_windows.csv`.
 3. Run the quicklook script and attach a couple of the generated PNGs to the
    PR description.
-<<<<<<< HEAD
-4. Request review from Sabrina. She approves the window choices by reading
-=======
 4. Request review from Dr. Perry. She approves the window choices by reading
->>>>>>> origin/main
    the manifest diff and the composite images, without needing the videos.
 5. After merge, anyone with the raw footage in `~/blindspot_data/` can
    reproduce the trims with `python scripts/trim_scenarios.py --apply`.

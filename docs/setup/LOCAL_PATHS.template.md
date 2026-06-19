@@ -58,7 +58,7 @@ Other tracker weights:
 
 ## Output Locations
 
-Large generated outputs should stay outside git unless Sabrina explicitly approves a small summary file.
+Large generated outputs should stay outside git unless Dr. Perry explicitly approves a small summary file.
 
 ```text
 Local raw run output root:

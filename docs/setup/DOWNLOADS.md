@@ -8,7 +8,7 @@ This document lists external data and model artifacts needed for the project. Do
 ## Intersection Footage (`blindspot_data`)
 
 The project runs on locally captured multi-camera intersection footage,
-**not** the public CityFlowV2 / AI City Challenge dataset. Sabrina is the
+**not** the public CityFlowV2 / AI City Challenge dataset. Dr. Perry is the
 source of truth for the raw videos; ask her how to obtain or sync them onto
 your machine.
 
@@ -144,7 +144,7 @@ BoT-SORT lists these ReID downloads:
 - MOT17-SBS-S50: `https://drive.google.com/file/d/1QZFWpoa80rqo7O-HXmlss8J8CnS7IUsN/view?usp=sharing`
 - MOT20-SBS-S50: `https://drive.google.com/file/d/1KqPQyj6MFyftliBHEIER7m_OrGpcrJwi/view?usp=sharing`
 
-These are person/MOT ReID weights from the BoT-SORT project. They are useful for reproducing BoT-SORT's MOT17/MOT20 setup, but Sabrina should decide whether they are appropriate for CityFlowV2 vehicle tracking.
+These are person/MOT ReID weights from the BoT-SORT project. They are useful for reproducing BoT-SORT's MOT17/MOT20 setup, but Dr. Perry should decide whether they are appropriate for CityFlowV2 vehicle tracking.
 
 ### Vehicle ReID Weights For CityFlowV2
 
@@ -167,7 +167,7 @@ Recommended starting point for this project:
 
 ### OSNet Demo Weights
 
-The schedule asks Sabrina to demonstrate OSNet/ReID embeddings on two crop images during Week 1. That can be a teaching demo separate from the BoT-SORT real-data run.
+The schedule asks Dr. Perry to demonstrate OSNet/ReID embeddings on two crop images during Week 1. That can be a teaching demo separate from the BoT-SORT real-data run.
 
 Use the torchreid/deep-person-reid model zoo for OSNet demo weights:
 

@@ -24,14 +24,14 @@ Students:
 
 Recommended repository owner:
 
-- Sabrina owns the GitHub organization/repository settings.
-- Sabrina or a designated maintainer has admin rights.
+- Dr. Perry owns the GitHub organization/repository settings.
+- Dr. Perry or a designated maintainer has admin rights.
 - Students have write access only if branch protection is enabled.
 
 Recommended branch protection for `main`:
 
 - Require pull requests before merge.
-- Require at least one review from Sabrina or the designated maintainer.
+- Require at least one review from Dr. Perry or the designated maintainer.
 - Block force-pushes to `main`.
 - Block direct pushes to `main`.
 - Allow students to push to their own branches.
@@ -149,7 +149,7 @@ Weeks 8-10:
 
 Recommended ownership:
 
-- Sabrina owns `docs/`, final decisions in `experiments/`, and accepted summaries in `results/`.
+- Dr. Perry owns `docs/`, final decisions in `experiments/`, and accepted summaries in `results/`.
 - Christine owns `papers/christina/` and her assigned experiment notes.
 - Floyd owns `papers/floyd/` and his assigned experiment notes.
 - Both students may contribute to `papers/shared-bibliography/`.

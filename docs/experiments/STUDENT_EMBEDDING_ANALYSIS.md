@@ -151,7 +151,7 @@ with a dated filename and record:
 - The output paths and the key numbers.
 - Your reading of the result.
 
-Add summaries to `results/` only after Sabrina approves them.
+Add summaries to `results/` only after Dr. Perry approves them.
 
 ---
 

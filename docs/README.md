@@ -14,11 +14,10 @@ Project documentation is organized by use:
 
 Key setup and collaboration documents:
 
-- `setup/SABRINA_QUICKSTART.md`: one-page setup and daily git workflow for Sabrina. Start here if you are Sabrina.
-- `setup/SABRINA_PR_REVIEW.md`: how Sabrina reviews, approves, requests changes on, or closes student pull requests.
+- `setup/PERRY_QUICKSTART.md`: one-page setup and daily git workflow for the researcher. Start here if you are Dr. Perry.
 - `setup/STUDENT_SETUP.md`: student prerequisites, setup, and daily git workflow. Start here if you are a student.
 - `setup/GROUP_COLLABORATION.md`: shared branch, folder, review, and experiment handoff rules.
-- `setup/GITHUB_WORKFLOW_GUIDE.md`: short GitHub workflow for Sabrina and student contributors.
+- `setup/GITHUB_WORKFLOW_GUIDE.md`: short GitHub workflow for Dr. Perry and student contributors.
 - `setup/PYTHON_ENVIRONMENT.md`: concise Python environment setup commands for local `.venv` and conda.
 - `setup/DOWNLOADS.md`: official dataset and required model-artifact download locations.
 - `setup/REAL_DATA_IMPLEMENTATION_PLAN.md`: remaining gates from setup through publication.

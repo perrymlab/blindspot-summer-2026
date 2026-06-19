@@ -43,7 +43,7 @@ times in the duration column. The two files have different problems.
    problem — they're different window choices and need a human decision.
 
 5. **Doc inconsistency:** `SCENARIO_TRIMMING.md` names the approver as
-   "Sabrina" (line ~128) and "Dr. Perry" (line ~199). Pick one name. (No git
+   "Dr. Perry" (line ~128) and "Dr. Perry" (line ~199). Pick one name. (No git
    merge-conflict markers are present — earlier note about a conflict at
    lines 199–203 was inaccurate.)
 
@@ -80,4 +80,4 @@ are unaffected).
 3. `python scripts/trim_scenarios.py` (dry run) → eyeball the plan → `--apply`.
 4. `python scripts/scenario_quicklook.py` and confirm anchors are present.
 5. Re-run baselines for S01–S13; correct STATUS to reflect real coverage.
-6. Fix the Sabrina/Dr. Perry name in `SCENARIO_TRIMMING.md`.
+6. Fix the Dr. Perry/Dr. Perry name in `SCENARIO_TRIMMING.md`.
