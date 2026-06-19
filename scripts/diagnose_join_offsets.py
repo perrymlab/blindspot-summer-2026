@@ -18,8 +18,16 @@ detection-rich AND the annotation is dense, the cause is one of:
 This is read-only. Per scenario/camera it:
   1. counts export detections vs annotation boxes, plus box sizes and
      coordinate extents (to catch resolution mismatches),
-  2. runs the real IoU join at several thresholds (0.5/0.3/0.1/0.05), then
-  3. classifies the cause and prints a per-camera verdict + tally.
+  2. runs the real IoU join at several thresholds (0.5/0.3/0.1/0.05),
+  3. classifies the cause and prints a per-camera verdict + tally, and
+  4. for UNDER/POOR cameras, adds a secondary "cause:" line that separates the
+     daytime explanations -- NIGHT/LOW-LIGHT (objective mean-luma check on the
+     source video), DECODE/STREAM (detections confined to an early window then
+     stop), SPARSE TRAFFIC (annotation has few boxes/frame), or DISTANT/SMALL
+     (annotation boxes far smaller than the few large export boxes).
+
+The brightness check reads the source video (data root via BLINDSPOT_DATA_ROOT
+or /workspace/blindspot_data). Pass --no-video to skip it (e.g. off the pod).
 
 Note: a frame-offset sweep is NOT used -- these annotations cover ~every frame,
 so frame-number alignment is always ~100% and uninformative.
@@ -46,10 +54,19 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from build_track_ids import (  # noqa: E402
     build_track_ids, load_annotation_tracks, load_matches, normalize_camera, summarize,
 )
+from run_baselines import default_data_root, find_video  # noqa: E402
+
+try:
+    import cv2  # optional; only needed for the brightness (day/night) check
+except ImportError:
+    cv2 = None
 
 REPO_ROOT = SCRIPT_DIR.parent
 ANNO_DIR = REPO_ROOT / "data" / "annotations"
 RUNS_DIR = REPO_ROOT / "runs" / "botsort"
+
+# Mean luma below this is treated as night/low-light (matches sample_scenario_frames).
+NIGHT_LUMA = 55.0
 
 
 def discover_scenarios() -> list[str]:
@@ -125,13 +142,75 @@ def verdict(short: str, n_det: int, n_ann: int, m05: int, m01: int,
             f"lowering IoU helps little.")
 
 
+def video_luma_and_frames(video: Path, samples: int = 4) -> tuple[float | None, int | None]:
+    """Mean luma (0-255) over a few sampled frames and the clip's frame count.
+
+    Returns (None, None) if OpenCV is unavailable or the video can't be read.
+    """
+    if cv2 is None or video is None:
+        return None, None
+    cap = cv2.VideoCapture(str(video))
+    if not cap.isOpened():
+        return None, None
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 0
+    lumas = []
+    if total > 0:
+        for i in range(samples):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, int((i + 1) * total / (samples + 1)))
+            ok, frame = cap.read()
+            if ok and frame is not None:
+                lumas.append(float(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).mean()))
+    cap.release()
+    luma = sum(lumas) / len(lumas) if lumas else None
+    return luma, (total or None)
+
+
+def detection_cause(n_det: int, n_ann: int, det: pd.DataFrame, ann: pd.DataFrame,
+                    ext_e: dict, ext_a: dict, luma: float | None, clip_hi: int) -> str:
+    """Separate *why* a daytime clip under-detects: night vs decode vs sparse vs distant.
+
+    Only meaningful for UNDER/POOR cameras; ordered most-decisive first.
+    """
+    a_lo, a_hi = int(ann["frame"].min()), int(ann["frame"].max())
+    ann_frames = ann["frame"].nunique()
+    ann_density = n_ann / max(1, ann_frames)
+    det_frames = det["frame"].nunique()
+    d_lo, d_hi = int(det["frame"].min()), int(det["frame"].max())
+    end = max(clip_hi, a_hi)
+    reach = d_hi / max(1, end)
+
+    if luma is not None and luma < NIGHT_LUMA:
+        return (f"NIGHT/LOW-LIGHT (mean luma {luma:.0f}) -- COCO YOLOX-x is daytime-biased; "
+                f"smoke-only. Confirm with sample_scenario_frames.py.")
+    if det_frames < 0.25 * ann_frames and reach < 0.6:
+        return (f"DECODE/STREAM? detections only span frames {d_lo}..{d_hi} of ~{end} "
+                f"({det_frames} distinct frames) then stop -- the decoder may be feeding "
+                f"blank/garbled frames after {d_hi}. Inspect the video / re-trim.")
+    if ann_density < 1.0:
+        return (f"SPARSE TRAFFIC -- annotation is only ~{ann_density:.1f} boxes/frame; "
+                f"genuinely few vehicles, low coverage is expected.")
+    area_e = max(1.0, ext_e["w"] * ext_e["h"])
+    area_a = max(1.0, ext_a["w"] * ext_a["h"])
+    if area_e / area_a > 3.0 and ext_a["w"] < 90:
+        return (f"DISTANT/SMALL vehicles -- annotation median {ext_a['w']:.0f}x{ext_a['h']:.0f}px "
+                f"vs export {ext_e['w']:.0f}x{ext_e['h']:.0f}px; the detector resolves only "
+                f"close/large vehicles. A bigger --tsize may help; not a join setting.")
+    luma_note = f" (daytime, luma {luma:.0f})" if luma is not None else ""
+    return (f"UNCLEAR{luma_note} -- dense annotation, detections spread across the clip; "
+            f"inspect frames with sample_scenario_frames.py.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("scenarios", nargs="+", help="scenario ids or 'all'")
     parser.add_argument("--cov-threshold", type=float, default=0.5,
                         help="IoU used for the reported coverage (default: 0.5); "
                              "the matched-vs-IoU sweep always shows 0.5/0.3/0.1/0.05")
+    parser.add_argument("--no-video", action="store_true",
+                        help="skip the brightness/day-night check (don't read source videos)")
     args = parser.parse_args()
+
+    data_root = None if args.no_video else default_data_root()
 
     scenarios = discover_scenarios() if args.scenarios == ["all"] else args.scenarios
     if not scenarios:
@@ -179,6 +258,12 @@ def main() -> int:
             ext_e = box_extents(det)
             ext_a = box_extents(ann)
 
+            luma, vframes = (None, None)
+            if data_root is not None:
+                video = find_video(data_root, scenario, f"c{cam:03d}")
+                luma, vframes = video_luma_and_frames(video)
+            clip_hi = vframes if vframes else a_hi
+
             # IoU-threshold sweep at offset 0 (frames already cover ~every annotation
             # frame, so a frame-offset sweep is uninformative here).
             sweep = {thr: join_stats(det, cam, ann, matches, 0, thr) for thr in sweep_thresholds}
@@ -195,8 +280,14 @@ def main() -> int:
                   + "  ".join(f"@{thr}={sweep[thr][0]}" for thr in sweep_thresholds)
                   + f"   (global@{args.cov_threshold}={cov_g}, cov={cov:.3f})")
 
+            if luma is not None:
+                print(f"        brightness: mean luma {luma:.0f} "
+                      f"({'NIGHT/LOW-LIGHT' if luma < NIGHT_LUMA else 'daytime'})")
+
             tag, msg = verdict(short, n_det, n_ann, m05, m01, ext_e, ext_a)
             print(f"        verdict: {msg}")
+            if tag in ("UNDER", "POOR"):
+                print(f"        cause:   {detection_cause(n_det, n_ann, det, ann, ext_e, ext_a, luma, clip_hi)}")
             findings.append((scenario, short, tag))
 
     print("\n" + "=" * 60)
