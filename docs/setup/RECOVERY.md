@@ -73,9 +73,14 @@ command regenerates them.
      ```
      See `docs/setup/DOWNLOADS.md` and `docs/data/SCENARIO_TRIMMING.md` for the
      layout and trimming details.
-7. Confirm readiness:
+7. Confirm readiness (weights auto-detect from `vendor/BoT-SORT/pretrained/`,
+   so no flags are needed once `yolox_x.pth` and `veri_sbs_R50-ibn.pth` are in
+   place):
    ```bash
-   python scripts/check_research_readiness.py --detector-weights <...> --reid-weights <...>
+   python scripts/check_research_readiness.py
+   # override only if your weights live elsewhere:
+   #   --detector-weights <path> --reid-weights <path>
+   #   (or set $PRIME_DETECTOR_WEIGHTS / $PRIME_REID_WEIGHTS)
    ```
 8. Re-run the export and validation per
    `docs/botsort-integration/BOTSORT_GPU_RUNBOOK.md`.

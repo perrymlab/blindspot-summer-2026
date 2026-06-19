@@ -44,7 +44,19 @@ Workflow:
 4. Run the readiness check:
 
 ```bash
-python scripts/check_research_readiness.py --data-root <data root> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
+python scripts/check_research_readiness.py
+```
+
+The data root and both weight paths auto-detect: the data root from
+`$BLINDSPOT_DATA_ROOT` / `/workspace/blindspot_data`, and the weights from
+`vendor/BoT-SORT/pretrained/` (`yolox_x.pth` detector, `veri_sbs_R50-ibn.pth`
+ReID). Override only if they live elsewhere:
+
+```bash
+python scripts/check_research_readiness.py \
+  --data-root <data root> \
+  --detector-weights <path-to-detector-weights> \
+  --reid-weights <path-to-reid-weights>
 ```
 
 Run this inside the researcher `botsort` conda env (Python 3.9). The old

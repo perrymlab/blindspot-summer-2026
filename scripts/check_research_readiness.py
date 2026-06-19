@@ -47,8 +47,22 @@ def parse_args() -> argparse.Namespace:
         "Defaults to $BLINDSPOT_DATA_ROOT, else /workspace/blindspot_data if present, else ~/blindspot_data. "
         "(--cityflow-root is a deprecated alias kept for backward compatibility.)",
     )
-    parser.add_argument("--detector-weights", type=Path, default=None)
-    parser.add_argument("--reid-weights", type=Path, default=None)
+    parser.add_argument(
+        "--detector-weights",
+        type=Path,
+        default=None,
+        help="YOLOX detector checkpoint. Defaults to $PRIME_DETECTOR_WEIGHTS, else "
+        "the first of yolox_x.pth / bytetrack_x_mot17.pth.tar found in the "
+        "BoT-SORT pretrained/ dir.",
+    )
+    parser.add_argument(
+        "--reid-weights",
+        type=Path,
+        default=None,
+        help="FastReID/OSNet weights. Defaults to $PRIME_REID_WEIGHTS, else the "
+        "first of veri_sbs_R50-ibn.pth / mot17_sbs_S50.pth found in the "
+        "BoT-SORT pretrained/ dir.",
+    )
     parser.add_argument("--bot-sort-path", type=Path, default=ROOT / "vendor" / "BoT-SORT")
     parser.add_argument("--require-scenarios", default="S01")
     parser.add_argument("--skip-pytorch", action="store_true")
@@ -77,6 +91,26 @@ def check_command(command: list[str], cwd: Path = ROOT) -> tuple[bool, str]:
     output = result.stdout.strip().splitlines()
     detail = output[-1] if output else f"exit code {result.returncode}"
     return result.returncode == 0, detail
+
+
+def resolve_weight(
+    explicit: Path | None, env_var: str, pretrained: Path, names: list[str]
+) -> Path:
+    """Resolve a weight path: explicit flag > env var > first existing default.
+
+    Falls back to ``pretrained / names[0]`` (the canonical name) even when no
+    file exists, so the readiness check can report a concrete missing path.
+    """
+    if explicit is not None:
+        return explicit
+    env = os.environ.get(env_var)
+    if env:
+        return Path(env).expanduser()
+    for name in names:
+        candidate = pretrained / name
+        if candidate.exists():
+            return candidate
+    return pretrained / names[0]
 
 
 def scenario_exists(data_root: Path, scenario: str) -> bool:
@@ -152,15 +186,26 @@ def main() -> int:
             str(args.data_root / scenario),
         )
 
-    if args.detector_weights is None:
-        failures += not check(False, "detector weights provided", "pass --detector-weights")
-    else:
-        failures += not check(args.detector_weights.exists(), "detector weights exist", str(args.detector_weights))
+    pretrained = bot_sort_path / "pretrained"
+    detector_weights = resolve_weight(
+        args.detector_weights,
+        "PRIME_DETECTOR_WEIGHTS",
+        pretrained,
+        ["yolox_x.pth", "bytetrack_x_mot17.pth.tar"],
+    )
+    failures += not check(
+        detector_weights.exists(), "detector weights exist", str(detector_weights)
+    )
 
-    if args.reid_weights is None:
-        failures += not check(False, "FastReID/OSNet weights provided", "pass --reid-weights")
-    else:
-        failures += not check(args.reid_weights.exists(), "FastReID/OSNet weights exist", str(args.reid_weights))
+    reid_weights = resolve_weight(
+        args.reid_weights,
+        "PRIME_REID_WEIGHTS",
+        pretrained,
+        ["veri_sbs_R50-ibn.pth", "mot17_sbs_S50.pth"],
+    )
+    failures += not check(
+        reid_weights.exists(), "FastReID/OSNet weights exist", str(reid_weights)
+    )
 
     print()
     if failures:
