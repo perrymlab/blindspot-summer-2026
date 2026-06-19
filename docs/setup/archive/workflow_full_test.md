@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-06-19** — kept for history; superseded. See `docs/STATUS.md` for current state and `docs/CONSOLIDATION_PLAN.md` for why.
+
 # Full GitHub Workflow Test
 
 This document describes how to test the professor/student GitHub workflow end to end without using Dr. Perry's personal GitHub credentials as the student.

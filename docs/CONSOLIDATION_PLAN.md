@@ -49,27 +49,31 @@ Perry" (avoided "Dr. Dr. Perry Perry"), and resolved the SCENARIO_TRIMMING.md me
 conflict to the Dr. Perry line. This file intentionally still says "Sabrina" because
 it documents the rename.
 
-## P2 — Collapse overlapping entry points
+## P2 — Collapse overlapping entry points — partly done (2026-06-19)
 
-- Keep the four entry points in the table above; demote everything else to
-  reference.
+- Keep the four entry points in the table above; demote everything else to reference.
 - `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`: **keep** — it is the detailed
-  analysis walkthrough that `START_HERE.md` links to (the old plan wrongly called
-  it a duplicate). Strip any lines that restate run status.
-- Archive (don't delete) into `docs/setup/archive/`, each with a one-line
-  "ARCHIVED — see STATUS.md" header:
-  - `docs/setup/IMPLEMENTATION.md` (outdated snapshot, superseded by STATUS + RUNBOOK)
-  - `docs/workflow_full_test.md` (a GitHub-workflow test log, not research)
-  - `docs/setup/GPU_CLOUD_FULL_TEST.md` (test log) — currently untracked; archive or drop.
+  analysis walkthrough that `START_HERE.md` links to (the old plan wrongly called it
+  a duplicate). Strip any lines that restate run status.
+- [x] Archived to `docs/setup/archive/` (with an "ARCHIVED" header, dropped from the
+  README index): `IMPLEMENTATION.md` (outdated snapshot) and `workflow_full_test.md`
+  (a GitHub-workflow test, not research).
+- [ ] **Decision needed — `docs/setup/GPU_CLOUD_FULL_TEST.md`:** NOT archived — it is a
+  current, self-contained GPU-cloud runbook, but it overlaps `PERRY_QUICKSTART.md` +
+  `BOTSORT_GPU_RUNBOOK.md` and links to a **non-existent `RESEARCHER_SETUP.md`**.
+  Pick one: (a) promote it to *the* researcher runbook and fold the other two into it,
+  or (b) keep it as a test plan and fix/remove the dead link. Currently untracked.
 
-## P3 — Week tracking (the real organizational gap)
+## P3 — Week tracking — deferred until re-export completes
 
-- `results/week03…07/README.md` are empty placeholders. Fill each with a run table
-  (date, scenarios, epsilon, tsize, status) — template in `templates/RUN_LOG_TEMPLATE.md`.
-- After every pod batch: `cp runs/botsort/run_manifest.csv results/weekXX/` and commit
-  (it's gitignored under `runs/`, so the REPORT.md is currently orphaned).
-- Note the `tsize 640 → 1536` re-export (2026-06-19) in the relevant week README so
-  the pre/post-fix CSV split is traceable.
+`results/week03…07/README.md` already have content (not empty, as the old plan
+claimed). Do **not** rewrite them now: the tsize-1536 re-export (TODO #1) is
+regenerating all run data, so any table written now is immediately stale. After the
+re-export + new `run_manifest.csv`:
+- Copy the manifest into the relevant `results/weekXX/` and commit (it's gitignored
+  under `runs/`, so the REPORT.md is currently orphaned).
+- Add a row noting the `tsize 640 → 1536` re-export so the pre/post-fix CSV split is
+  traceable.
 
 ## P4 — Researcher steps that block students (tracked in STATUS.md TODO #1)
 

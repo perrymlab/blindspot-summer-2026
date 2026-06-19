@@ -1,3 +1,5 @@
+> **ARCHIVED 2026-06-19** — kept for history; superseded. See `docs/STATUS.md` for current state and `docs/CONSOLIDATION_PLAN.md` for why.
+
 # PRIME MTMC Poisoning Implementation
 
 This repository contains the first working implementation layer for the project described in `docs/schedules/PRIME_Schedule_new_revised.pdf`, plus a patched local BoT-SORT checkout for ReID embedding export and poisoning.

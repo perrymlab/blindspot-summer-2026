@@ -22,7 +22,6 @@ Key setup and collaboration documents:
 - `setup/DOWNLOADS.md`: official dataset and required model-artifact download locations.
 - `setup/REAL_DATA_IMPLEMENTATION_PLAN.md`: remaining gates from setup through publication.
 - `setup/LOCAL_PATHS.template.md`: untracked local path template for datasets, weights, and outputs.
-- `workflow_full_test.md`: end-to-end professor/student GitHub workflow test using a separate student account.
 - `weekly-briefs/RESEARCHER_ALL_WEEKS_TASKS.md`: schedule-derived researcher task checklist for Weeks 1-10.
 - `templates/RUN_LOG_TEMPLATE.md`: experiment run-log template.
 - `templates/PULL_REQUEST_TEMPLATE.md`: pull request checklist template.
