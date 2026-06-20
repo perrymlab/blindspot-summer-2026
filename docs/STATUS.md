@@ -48,13 +48,19 @@ identities; real ground-truth requires annotation, see TODO #4).
    S13/c03 5→1300). Default-640 under-counted small/distant vehicles in **every**
    export. **This is the gate on student embedding analysis** — they need correct
    clean+poison `*_all-cams.csv`. Ordered sequence:  
-   - **(a) Clean re-export @1536** — 🔄 in progress (pod tmux `reexport`,
-     `--all --skip-poison --overwrite`, log `runs/reexport_clean_1536.log`, ~4 h).  
-   - **(b) Poison re-export @1536** (eps 0.5) — pending; `--all --skip-clean
-     --overwrite` after (a).  
-   - **(c) Publish** new clean+poison `*_all-cams.csv` + bump the "use these"
-     note in `START_HERE.md` (published CSVs predate the fix). Note 1536 CSVs are
-     ~2× larger — revisit LFS/Release budget (TODO #8) first.  
+   - **(a) Clean re-export @1536** — ✅ done (2026-06-20). 6-worker parallel run
+     (`scripts/reexport_parallel.sh`, ~3 h); 54/54 per-cam CSVs, 18 all-cams merges,
+     no errors. Verified: S03/c01 24→1328, S13/c03 5→1307.  
+   - **(b) Poison re-export @1536** (eps 0.5, c01/c02) — ✅ done (2026-06-20).
+     6-worker parallel (`scripts/poison_parallel.sh`); 17 scenarios (**S10 skipped**
+     — smoke-only), 17 all-cams merges, no errors. Row counts match clean (poison
+     perturbs embeddings, not detections).  
+   - **(c) Publish** new clean+poison `*_all-cams.csv` + bump the "use these" note
+     in `START_HERE.md` — ⬅️ **NOW THE BLOCKER.** Files are large (S01 clean all-cams
+     = 1.2 GB; ~21 GB clean, ~40 GB clean+poison). Decide distribution before
+     uploading: gzip (~3–4× smaller) + GitHub Release for the daytime-usable subset
+     is the leaning option; pod HTTP (port 8890) and Parquet are alternatives. See
+     TODO #8.  
    - **(d) Re-join annotations** → `*_tracked.csv` (existing joins are 640-stale).  
    Pod already at the commit with the `--tsize` flag (pushed 2026-06-19).  
    *Triage sub-task — ✅ done (2026-06-19):*  
@@ -124,6 +130,18 @@ identities; real ground-truth requires annotation, see TODO #4).
   URL; releases need the classic token (org blocked the fine-grained one).
 
 ## Decisions log
+
+- 2026-06-20: **Full clean+poison re-export at tsize 1536 done — run it PARALLEL.**
+  The serial `run_baselines` left the pod ~95% idle (one process = 3.5 of 128 cores,
+  GPU 0–26% util / 2.3 of 24 GB) because the pipeline is CPU/IO-bound, not GPU-bound
+  (decode, 1536 resize, ReID crops, writing huge embedding CSVs). Switching to **6
+  parallel workers** over disjoint scenario subsets (`scripts/reexport_parallel.sh`,
+  `scripts/poison_parallel.sh`; GPU then ~14 GB / 25–44 %) cut each pass ~10 h → ~3 h.
+  Both passes verified, no errors; S10 skipped for poison (smoke-only). **File sizes
+  are large** (S01 clean all-cams 1.2 GB; ~21 GB clean) — distribution to students is
+  now the gating decision (TODO #1c / #8). SSH-kill gotcha: never `pkill -f <pat>`
+  when `<pat>` is in your own remote command — it kills the shell (use PID kills
+  excluding `$$`).
 
 - 2026-06-19 (later): **Under-review under-detection is a DETECTOR INPUT-SIZE bug,
   not footage — fixed by raising `--tsize`.** The export pipeline never set
