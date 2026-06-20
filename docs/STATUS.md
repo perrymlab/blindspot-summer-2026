@@ -30,7 +30,7 @@ identities; real ground-truth requires annotation, see TODO #4).
 | 1. Environment and data | **Done** (RunPod /workspace persistent; footage replaced CityFlowV2) | 2026-06-12 |
 | 2. Clean baseline | **Partial** — all 18 windows/trims verified valid (2026-06-19); detector input-size bug found (ran at tsize 640) → full re-export at `--tsize 1536` pending (TODO #1); IDF1/HOTA/MOTA/IDS not implemented | 2026-06-19 |
 | 3. Poisoning runs | **Partial** — eps 0.5 batch done (valid scenarios); eps 0.1 / 1.0 pending | 2026-06-12 |
-| 4. Detector on real outputs | **Partial** — runs end to end but on `detection_index`; join pipeline code done (build_track_ids.py); annotation in progress (S07, S14, S15) | 2026-06-13 |
+| 4. Detector on real outputs | **Partial** — real `track_id` joins done on 1536 exports for 14 usable scenarios (mean coverage ~0.45, IoU 0.2); annotations exist for **all 18** (STATUS was stale on "S07/S14/S15 in progress" — Perry should confirm all are trustworthy); IDF1/HOTA/MOTA/IDS still not extracted | 2026-06-20 |
 | 5. Scalability / boundaries | **Not started** — majority-poisoned caveat documented in week06 README | — |
 | 6. Writing / publication | **Not started** | — |
 
@@ -60,7 +60,12 @@ identities; real ground-truth requires annotation, see TODO #4).
      published as GitHub Release **`exports-2026-06-20`**. `START_HERE.md` updated to
      point students there (gzip is pandas-transparent — no gunzip). Settles the
      LFS/Release-budget question (TODO #8): Release assets, gzipped, not LFS.  
-   - **(d) Re-join annotations** → `*_tracked.csv` (existing joins are 640-stale).  
+   - **(d) Re-join annotations** → `*_tracked.csv` — ✅ done (2026-06-20).
+     `build_track_ids_all.sh ... --iou-threshold 0.2` on the 1536 exports for the 14
+     usable scenarios (28 joins, 0 failures); deleted 8 stale 640-era `_tracked.csv`
+     (S09/S10/S12/S18). **Mean per-camera coverage ~0.45** (vs 0.00 at 640) — range
+     0.15 (S01/c03) to 0.85 (S13/c03); strong on S03, S13/c03, S16, S17. Real
+     `track_id` metrics now possible; `_tracked.csv` not yet published (offer open).  
    Pod already at the commit with the `--tsize` flag (pushed 2026-06-19).  
    *Triage sub-task — ✅ done (2026-06-19):*  
    - **S03, S13/c03 — DAY, resolution-limited → recoverable @1536.** Promote to
@@ -74,13 +79,14 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ### Active
 
-2. **Annotate S07, S14, S15** for real cross-camera identity  
-   *In progress (2026-06-13):* Perry annotating S07 using multicam-reid
-   (https://github.com/figaone/multicam-reid).  
-   After each: `bash scripts/save_annotations.sh <scenario>` (or `all` for every
-   completed annotation) → commit → run join.  
-   Full walkthrough: `docs/data/ANNOTATION_GUIDE.md`.  
-   *Unblocks: TODO #4 results, publishable precision/recall.*
+2. **Annotations + joins** — ✅ largely done (2026-06-20)  
+   `data/annotations/` has matches.json + 3 track files for **all 18** scenarios
+   (annotated via multicam-reid, https://github.com/figaone/multicam-reid). Joins
+   to the 1536 exports done for the 14 usable scenarios (see TODO #1d, mean coverage
+   ~0.45). **Open:** (a) Perry to confirm all 18 annotations are trustworthy (this
+   item used to say only S07/S14/S15 were in progress); (b) publish the `_tracked.csv`
+   for real-`track_id` analysis; (c) extract IDF1/HOTA/MOTA/IDS (TODO #6).  
+   Walkthrough: `docs/data/ANNOTATION_GUIDE.md`.
 
 3. **Full sweep** (eps 0.1 and 1.0; valid scenarios only)  
    `python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`  
@@ -129,6 +135,17 @@ identities; real ground-truth requires annotation, see TODO #4).
   URL; releases need the classic token (org blocked the fine-grained one).
 
 ## Decisions log
+
+- 2026-06-20: **Annotation re-join lands at 1536 — real `track_id` recovered.** With
+  the dense 1536 exports, `build_track_ids_all.sh ... --iou-threshold 0.2` produced
+  usable ground-truth identity for the 14 daytime-usable scenarios: **mean per-camera
+  coverage ~0.45** (vs **0.00** at 640 — S03/c01 went 0.00 → 0.76), range 0.15–0.85.
+  Joins are fast (~12 s/scenario, CPU/pandas — no GPU). 8 stale 640-era `_tracked.csv`
+  (S09/S10/S12/S18) deleted to keep `make_progress_report` from preferring them.
+  Surprise: `data/annotations/` is complete for **all 18** scenarios, not just the
+  S07/S14/S15 that STATUS claimed were "in progress" — Perry to confirm all are
+  trustworthy. IoU 0.2 chosen (vs default 0.5) per the 2026-06-19 box-mismatch
+  finding; revisit now that 1536 boxes align better.
 
 - 2026-06-20: **Full clean+poison re-export at tsize 1536 done — run it PARALLEL.**
   The serial `run_baselines` left the pod ~95% idle (one process = 3.5 of 128 cores,
