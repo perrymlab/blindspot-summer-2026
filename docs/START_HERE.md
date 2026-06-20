@@ -18,11 +18,21 @@ Full prerequisites + daily git workflow: [`setup/STUDENT_SETUP.md`](setup/STUDEN
 
 ## 2. Get the data
 
-A researcher publishes per-scenario embedding CSVs. **Always use the
-`*_all-cams.csv` files** (the cross-camera detector needs every camera in one
-table). Never commit CSVs, videos, or weights.
+Download the per-scenario embedding CSVs from the GitHub Release
+**[`exports-2026-06-20`](https://github.com/perrymlab/blindspot-summer-2026/releases/tag/exports-2026-06-20)**
+(clean + poisoned, detector input size `tsize=1536`). **Always use the
+`*_all-cams.csv` files** — the cross-camera detector needs every camera in one
+table. Never commit CSVs, videos, or weights.
+
+Files are **gzipped** (`*.csv.gz`, ~4× smaller). You do **not** need to unzip
+them: `analyze_embedding_export.py` / `visualize_boxes.py` use pandas, which reads
+`.csv.gz` directly — just pass the `.gz` path. (To peek manually: `gunzip -k`.)
 
 Header: `camera,frame,detection_index,x1,y1,x2,y2,embedding`.
+
+> These supersede the older `report-2026-06-12` exports, which were detector
+> input-size 640 and **under-detected** small/distant vehicles. Use
+> `exports-2026-06-20` only.
 
 ## 3. Know which scenarios are usable
 
@@ -33,12 +43,13 @@ Header: `camera,frame,detection_index,x1,y1,x2,y2,embedding`.
 | **Low-light caveat** (dusk, partial recovery) | S12·c03, S18 | usable but sparse — label low-light, expect lower coverage |
 | **Smoke-only / skip** (confirmed footage-limited) | S10 (night) | do **not** use for coverage |
 
-> **Re-export pending (2026-06-19):** the under-detection on S03/S13·c03/etc. was a
-> detector input-size bug (pipeline ran at YOLOX default 640). `run_baselines.py`
-> now defaults `--tsize 1536`; S03 and S13·c03 are daytime and recover fully, so
-> they move to placeholder-usable. **The published CSVs predate this fix** — wait
-> for the re-exported `*_all-cams.csv` files (STATUS.md TODO #1) before trusting
-> coverage. Always re-check the `docs/STATUS.md` Decisions log before starting.
+> **Re-export done (2026-06-20):** the under-detection was a detector input-size
+> bug (pipeline ran at YOLOX default 640); fixed at `--tsize 1536` and the full
+> clean+poison set was re-exported and published as `exports-2026-06-20`. S03 and
+> S13·c03 are daytime and recovered fully (now placeholder-usable). The 14 usable
+> scenarios above are in the Release; S10 (night) and the dusk-caveat cameras are
+> not poisoned/published. Always re-check the `docs/STATUS.md` Decisions log before
+> starting.
 
 ## What you can do today (before annotation)
 

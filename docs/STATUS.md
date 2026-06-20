@@ -55,12 +55,11 @@ identities; real ground-truth requires annotation, see TODO #4).
      6-worker parallel (`scripts/poison_parallel.sh`); 17 scenarios (**S10 skipped**
      — smoke-only), 17 all-cams merges, no errors. Row counts match clean (poison
      perturbs embeddings, not detections).  
-   - **(c) Publish** new clean+poison `*_all-cams.csv` + bump the "use these" note
-     in `START_HERE.md` — ⬅️ **NOW THE BLOCKER.** Files are large (S01 clean all-cams
-     = 1.2 GB; ~21 GB clean, ~40 GB clean+poison). Decide distribution before
-     uploading: gzip (~3–4× smaller) + GitHub Release for the daytime-usable subset
-     is the leaning option; pod HTTP (port 8890) and Parquet are alternatives. See
-     TODO #8.  
+   - **(c) Publish** — ✅ done (2026-06-20). gzipped clean+poison `*_all-cams.csv`
+     for the 14 daytime-usable scenarios (S01–S08, S11, S13–S17), 28 assets / 5.7 GB,
+     published as GitHub Release **`exports-2026-06-20`**. `START_HERE.md` updated to
+     point students there (gzip is pandas-transparent — no gunzip). Settles the
+     LFS/Release-budget question (TODO #8): Release assets, gzipped, not LFS.  
    - **(d) Re-join annotations** → `*_tracked.csv` (existing joins are 640-stale).  
    Pod already at the commit with the `--tsize` flag (pushed 2026-06-19).  
    *Triage sub-task — ✅ done (2026-06-19):*  
