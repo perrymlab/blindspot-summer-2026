@@ -64,8 +64,10 @@ identities; real ground-truth requires annotation, see TODO #4).
      `build_track_ids_all.sh ... --iou-threshold 0.2` on the 1536 exports for the 14
      usable scenarios (28 joins, 0 failures); deleted 8 stale 640-era `_tracked.csv`
      (S09/S10/S12/S18). **Mean per-camera coverage ~0.45** (vs 0.00 at 640) — range
-     0.15 (S01/c03) to 0.85 (S13/c03); strong on S03, S13/c03, S16, S17. Real
-     `track_id` metrics now possible; `_tracked.csv` not yet published (offer open).  
+     0.15 (S01/c03) to 0.85 (S13/c03); strong on S03, S13/c03, S16, S17. The 28
+     `_tracked.csv` are gzipped and published to Release `exports-2026-06-20`
+     (56 assets total) — smoke-tested: `analyze_embedding_export.py --track-column
+     track_id` produces real cross-camera metrics. **Students can do real analysis.**  
    Pod already at the commit with the `--tsize` flag (pushed 2026-06-19).  
    *Triage sub-task — ✅ done (2026-06-19):*  
    - **S03, S13/c03 — DAY, resolution-limited → recoverable @1536.** Promote to
@@ -115,12 +117,13 @@ identities; real ground-truth requires annotation, see TODO #4).
 
 ## TODO — students (Christine / Floyd)
 
-1. **Wait for annotation (TODO #2 above)** before running the full analysis —
-   until then use `--track-column detection_index` and label results as
-   placeholder only.
-2. Run `scripts/analyze_embedding_export.py` on published `*_all-cams.csv`
-   files (clean vs. poisoned), sweep `--z-threshold`, write run logs, PR
-   summaries to `results/weekXX/`.
+1. **Real analysis is ready** — download `*_all-cams_tracked.csv.gz` from Release
+   `exports-2026-06-20` and run `scripts/analyze_embedding_export.py
+   --track-column track_id` (clean vs poisoned), sweep `--z-threshold`, write run
+   logs + PR summaries to `results/weekXX/`. See `docs/START_HERE.md` "How to analyze."
+   Mind per-scenario coverage (mean ~0.45; weak on S01/S05·c02/S11·c03).
+2. Placeholder fallback only where coverage is too low: `*_all-cams.csv.gz` with
+   `--track-column detection_index`, labelled placeholder.
 3. Week 6 detector review — include the majority-poisoned caveat
    (`experiments/week06-detector/README.md`).
 
