@@ -3,7 +3,7 @@
 A single, self-contained runbook for cloning this repo onto a fresh GPU cloud server, installing every dependency, exercising every implemented feature end to end, and recording what work is still outstanding. Read top to bottom; nothing else in `docs/` is required to follow this file.
 
 > Repo: `https://github.com/perrymlab/blindspot-summer-2026`
-> Source of truth for related docs (only consult if something here is ambiguous): `docs/setup/RESEARCHER_SETUP.md`, `docs/setup/DOWNLOADS.md`, `docs/botsort-integration/BOTSORT_INTEGRATION.md`, `docs/data/SCENARIO_TRIMMING.md`.
+> Source of truth for related docs (only consult if something here is ambiguous): `docs/setup/PERRY_QUICKSTART.md`, `docs/setup/DOWNLOADS.md`, `docs/botsort-integration/BOTSORT_INTEGRATION.md`, `docs/data/SCENARIO_TRIMMING.md`.
 
 ---
 
@@ -62,7 +62,7 @@ git config user.name "Brian"
 git config user.email "<your-noreply-email>@users.noreply.github.com"
 ```
 
-If you plan to push from this server, authenticate with a fine-grained PAT (see `docs/setup/SABRINA_QUICKSTART.md` § 1d) or `gh auth login`.
+If you plan to push from this server, authenticate with a fine-grained PAT (see `docs/setup/PERRY_QUICKSTART.md`) or `gh auth login`.
 
 ---
 

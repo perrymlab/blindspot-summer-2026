@@ -1,6 +1,6 @@
 # Blindspot Summer 2026
 
-Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Sabrina Perry is the faculty researcher; Christine Page and Floyd Dodwell are the students.
+Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Dr. Sabrina Perry is the faculty researcher; Christine Page and Floyd Dodwell are the students.
 
 ## Repository Layout
 
@@ -32,9 +32,10 @@ Implemented:
 - Shareable progress reports (`scripts/make_progress_report.py`): score tables, annotated stills/videos, self-contained HTML.
 - LFS publishing of exports/trimmed videos (`scripts/publish_run_outputs.sh`) and GPU-pod recovery (`scripts/pod_bootstrap.sh`).
 
+- Ground-truth global-ID join (`scripts/build_track_ids.py`): real cross-camera `track_id` joined onto exports for 14 scenarios (mean coverage ~0.45), so identity-level metrics are no longer placeholder-only.
+
 Not yet implemented:
 
-- Merge from BoT-SORT detection-level embedding exports to tracker/global IDs (analysis currently uses `detection_index`; identity-level numbers are placeholders until then).
 - Tracking metrics such as IDF1, HOTA, MOTA, and IDS from real tracker output.
 - Publication-quality plots.
 
@@ -78,7 +79,7 @@ Use `prime_mtmc.data.EmbeddingTable.from_csv` to load exported embeddings.
 
 ## Next Engineering Step
 
-S01 clean + poisoned (eps 0.5) runs are complete on trimmed footage. Next: fix the suspect rows in `data/scenario_windows.csv` (see `docs/STATUS.md`), run the full sweep (`python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`), then implement the tracker/global-ID merge and IDF1/HOTA/MOTA/IDS metric extraction. Current progress and open TODOs: `docs/STATUS.md`.
+Clean + poisoned (eps 0.5) runs are complete for the usable scenarios at the corrected detector input size (`--tsize 1536`, re-exported 2026-06-20; trim windows verified valid 2026-06-19). Next: run the full epsilon sweep (`python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`), the single-camera poison sweep, and IDF1/HOTA/MOTA/IDS metric extraction. Current progress and open TODOs: `docs/STATUS.md`.
 
 ## BoT-SORT Clone
 

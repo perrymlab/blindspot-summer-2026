@@ -41,7 +41,12 @@ executes on the pod.
   (adds `--prime-*` flags + class filter + embedding export). `vendor/BoT-SORT`
   is pod-only / gitignored — not in this checkout.
 
-## Current state (2026-06-19) — the important recent finding
+## Current state (2026-06-20) — re-export + annotation rejoin done
+
+**The blocking chain is complete: clean+poison re-export @1536 and the
+ground-truth annotation rejoin are both done and published** (GitHub Release
+`exports-2026-06-20`; 56 assets). Students can run real `track_id` analysis. The
+preceding finding that drove it (kept here for context):
 
 **The under-detection was a detector input-size bug, now fixed.** The export
 pipeline never set `--tsize`, so every run used YOLOX-x's default **640**, which
@@ -59,26 +64,29 @@ views. A per-camera tsize sweep settled it (fresh runs, detection counts):
   rose.
 
 **Fix:** `scripts/run_baselines.py` now has a `--tsize` flag, **default 1536**.
-Default-640 under-counted *every* export (dense daytime scenarios merely looked
-populated via close vehicles), so the next step is a full re-export at 1536
-(`run_baselines --all --overwrite --apply`) — then re-join (lower IoU 0.2 for the
-loose-box cameras) and re-diagnose. **Push the run_baselines.py change to the pod
-before re-exporting.**
+Default-640 under-counted *every* export, so a full re-export at 1536 was
+required. **That re-export is now done** (2026-06-20, 6-worker parallel via
+`scripts/reexport_parallel.sh` + `scripts/poison_parallel.sh`), as is the
+annotation rejoin at IoU 0.2 (`build_track_ids_all.sh`) for the 14 usable
+scenarios (S01–S08, S11, S13–S17; mean per-camera coverage ~0.45). All published
+to Release `exports-2026-06-20`.
 
-Full evidence: `STATUS.md` Decisions log 2026-06-19 ("later").
+Full evidence: `STATUS.md` Decisions log (2026-06-19 "later" and 2026-06-20).
 
 ## Open threads / next actions
 
-1. **Full re-export at `--tsize 1536`** (`run_baselines --all --overwrite --apply`,
-   tmux, ~5.5 fps so hours) now that the input-size fix is in. Push the
-   `run_baselines.py` change to the pod first. Then re-join with
-   `bash scripts/build_track_ids_all.sh S08 S09 S11 S12 S13 -- --iou-threshold 0.2`;
-   if coverage improves, **fold `--iou-threshold 0.2` into `build_track_ids_all.sh`**
-   as the default for those scenarios.
+1. **Re-export @1536 + annotation rejoin — done** (2026-06-20, published as
+   `exports-2026-06-20`). `--iou-threshold 0.2` was used for the rejoin. Remaining
+   researcher work (`STATUS.md` TODOs): full epsilon sweep 0.1/1.0 (#3),
+   single-camera poison sweep (#4), IDF1/HOTA/MOTA/IDS extraction (#6), and
+   committing `run_manifest.csv` from the pod into `results/weekXX/` (#7).
 2. Frame/tsize triage is **done** (day/night + resolution split finalized in
    `STATUS.md` Decisions log and the `docs/START_HERE.md` tier table).
-3. Student onboarding: `docs/START_HERE.md` (new) routes students; real metrics
-   gated on S07/S14/S15 annotation join (`STATUS.md` TODO #2).
+3. Student onboarding: `docs/START_HERE.md` routes students; real `track_id`
+   metrics are **ready** for the 14 usable scenarios (the old "gated on
+   S07/S14/S15 annotation" framing is obsolete — annotations exist for all 18,
+   joins published for 14). Open: Perry to confirm all 18 annotations are
+   trustworthy (`STATUS.md` TODO #2).
 4. Broader objective (paused): vehicle-capable detector + better visualization
    (transcode videos for inline Jupyter). Detector is already YOLOX-x+vehicle
    filter; the remaining viz work is transcoding/overlay UX.

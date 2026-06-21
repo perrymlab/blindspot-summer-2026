@@ -36,7 +36,7 @@ BoT-SORT. Full steps are in `docs/experiments/STUDENT_EMBEDDING_ANALYSIS.md`.
 4. Get the S01 clean embedding CSV(s) from the researcher.
 5. Analyze them with `scripts/analyze_embedding_export.py` (see the student guide).
 6. Record input CSV, command, output paths, and the metric output.
-7. Add a small summary to `results/week03/` only after Sabrina approves it.
+7. Add a small summary to `results/week03/` only after Dr. Perry approves it.
 
 ## Required Result
 
@@ -56,4 +56,4 @@ cd vendor/BoT-SORT
 python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv
 ```
 
-Repeat for each S01 camera, then merge/export as required by the metric workflow Sabrina approves.
+Repeat for each S01 camera, then merge/export as required by the metric workflow Dr. Perry approves.

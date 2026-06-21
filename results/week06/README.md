@@ -1,18 +1,22 @@
 # Week 06 Results — Detector Performance
 
-## Status: Partial — metrics are placeholders ⚠️
+## Status: Partial — real `track_id` available, metrics not yet extracted ⚠️
 
-Detector ran on all scenarios 2026-06-12, but on `detection_index` (fake
-cross-camera pairings), **not real ground-truth identities**. The structural
-pattern (poisoned-pair coherence) is visible, but precision/recall numbers
-are not publishable until TODO #4 (annotation) is complete.
+The original 2026-06-12 detector run used `detection_index` (fake cross-camera
+pairings). Since then, ground-truth annotations were produced for **all 18**
+scenarios and joined onto the 1536 re-export for the **14 usable** scenarios
+(S01–S08, S11, S13–S17) as real global `track_id` (mean per-camera coverage
+~0.45), published as Release `exports-2026-06-20`. Real precision/recall can now
+be computed (`analyze_embedding_export.py --track-column track_id`); the
+IDF1/HOTA/MOTA/IDS extraction (STATUS TODO #6) is still outstanding before the
+gate fully closes.
 
 ## Run log
 
 | Date | Scenarios | Track column | Poison cams | P | R | F1 | Valid? |
 |------|-----------|-------------|-------------|---|---|----|--------|
 | 2026-06-12 | S01–S18 | `detection_index` | c01, c02 | — | — | — | NO — placeholder identities |
-| TBD | S07, S14, S15 | `track_id` | c01, c02 | — | — | — | After annotation (TODO #3) |
+| 2026-06-20 | 14 usable | `track_id` | c01, c02 | — | — | — | real GT joined; metrics not yet tabulated |
 
 ## Important caveat — majority-poisoned scenarios
 
@@ -29,8 +33,9 @@ poison sweep (STATUS TODO #5) is the planned mitigation test.
 
 ## Open items before gate closes
 
-- [ ] Annotate S07, S14, S15 (STATUS TODO #3 / ANNOTATION_GUIDE.md)
-- [ ] Run join: `scripts/build_track_ids.py` for each scenario + export
-- [ ] Re-run detector with `--track-column track_id` — these are the real numbers
-- [ ] Single-camera poison sweep (STATUS TODO #5)
+- [x] Annotate scenarios (done for all 18; STATUS TODO #2 / ANNOTATION_GUIDE.md)
+- [x] Run join `scripts/build_track_ids.py` (done for the 14 usable scenarios, IoU 0.2)
+- [ ] Tabulate detector results with `--track-column track_id` (real numbers — pending)
+- [ ] IDF1/HOTA/MOTA/IDS extraction (STATUS TODO #6)
+- [ ] Single-camera poison sweep (STATUS TODO #4)
 - [ ] Document majority-poisoned caveat in paper draft

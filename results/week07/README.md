@@ -2,8 +2,9 @@
 
 ## Status: Not started
 
-Prerequisite: week06 real-identity metrics must exist first (annotation +
-join pipeline complete). Until then this gate cannot meaningfully be assessed.
+Prerequisite: week06 real-identity metrics. The annotation + join pipeline is now
+complete (real `track_id` for the 14 usable scenarios), so the remaining blocker
+is tabulating those metrics (STATUS TODO #6) before this gate can be assessed.
 
 ## Planned experiments
 
@@ -14,7 +15,8 @@ join pipeline complete). Until then this gate cannot meaningfully be assessed.
 
 ## Dependencies
 
-- [ ] STATUS TODO #1 (trim windows) — fixes valid scenario set
-- [ ] STATUS TODO #3 (annotation) — gives real identities for S07/S14/S15
-- [ ] STATUS TODO #4 (join + analyze with track_id) — produces real metrics
-- [ ] STATUS TODO #5 (single-cam sweep) — directly contributes to this gate
+- [x] Valid scenario set — trim windows verified + 1536 re-export done (2026-06-20)
+- [x] Annotation — done for all 18; real `track_id` joined for 14 usable (STATUS TODO #2)
+- [ ] Tabulate real `track_id` metrics + IDF1/HOTA/MOTA/IDS (STATUS TODO #6)
+- [ ] Single-camera poison sweep (STATUS TODO #4) — directly contributes to this gate
+- [ ] Full epsilon sweep 0.1/1.0 (STATUS TODO #3)

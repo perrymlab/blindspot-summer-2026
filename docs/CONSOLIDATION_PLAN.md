@@ -2,11 +2,15 @@
 
 **Rewritten:** 2026-06-19 (replaces the stale 2026-06-13 version, whose Priority 1
 was already done and which referenced files that no longer exist).
+**Updated 2026-06-21:** P0/P1/P2/P4 done; P3 partly done (week READMEs refreshed,
+`run_manifest.csv` copy still pod-side). The remaining `Sabrina` rename leftovers
+(`README.md`, `week03-baseline/RUNBOOK.md`) and `START_HERE.md`/week-README state
+drift from the 2026-06-20 milestone were all fixed in the same pass.
 
-**The problem:** the repo has ~30 docs with overlapping scope, an incomplete
-`Sabrina → Dr. Perry` rename, dead cross-links, an unresolved merge conflict, and
-no single source of truth — so the same question ("what's done? where do I start?")
-has several conflicting answers.
+**The problem (mostly resolved):** the repo had ~30 docs with overlapping scope, an
+incomplete `Sabrina → Dr. Perry` rename, dead cross-links, an unresolved merge
+conflict, and no single source of truth — so the same question ("what's done? where
+do I start?") had several conflicting answers.
 
 **The fix is one rule, applied everywhere:**
 
@@ -35,8 +39,9 @@ entry points and must not duplicate state or each other.
 
 - [x] `docs/README.md` linked dead `SABRINA_QUICKSTART.md` / `SABRINA_PR_REVIEW.md`
       → repointed to `PERRY_QUICKSTART.md` (2026-06-19).
-- [ ] **Merge conflict** in `docs/data/SCENARIO_TRIMMING.md` L199–203
-      (`Sabrina` vs `Dr. Perry`) — resolve as part of P1.
+- [x] **Merge conflict** in `docs/data/SCENARIO_TRIMMING.md` L199–203
+      (`Sabrina` vs `Dr. Perry`) — resolved to the Dr. Perry line as part of P1
+      (no conflict markers remain anywhere; verified 2026-06-21).
 - [x] This file no longer references the deleted `LOCAL_STUDENT_HANDOFF.md`.
 
 ## P1 — Naming: `Sabrina → Dr. Perry` — ✅ done (2026-06-19)
@@ -58,44 +63,49 @@ it documents the rename.
 - [x] Archived to `docs/setup/archive/` (with an "ARCHIVED" header, dropped from the
   README index): `IMPLEMENTATION.md` (outdated snapshot) and `workflow_full_test.md`
   (a GitHub-workflow test, not research).
-- [ ] **Decision needed — `docs/setup/GPU_CLOUD_FULL_TEST.md`:** NOT archived — it is a
-  current, self-contained GPU-cloud runbook, but it overlaps `PERRY_QUICKSTART.md` +
-  `BOTSORT_GPU_RUNBOOK.md` and links to a **non-existent `RESEARCHER_SETUP.md`**.
-  Pick one: (a) promote it to *the* researcher runbook and fold the other two into it,
-  or (b) keep it as a test plan and fix/remove the dead link. Currently untracked.
+- [x] **Decided — `docs/setup/GPU_CLOUD_FULL_TEST.md`:** kept as a self-contained
+  test/runbook (option b); the two dead links (`RESEARCHER_SETUP.md`,
+  `SABRINA_QUICKSTART.md`) were repointed to `PERRY_QUICKSTART.md` (2026-06-21). The
+  larger fold-in into `PERRY_QUICKSTART.md` + `BOTSORT_GPU_RUNBOOK.md` (option a) is
+  deferred — revisit only if the three runbooks start to drift.
 
-## P3 — Week tracking — deferred until re-export completes
+## P3 — Week tracking — partly done (2026-06-21)
 
-`results/week03…07/README.md` already have content (not empty, as the old plan
-claimed). Do **not** rewrite them now: the tsize-1536 re-export (TODO #1) is
-regenerating all run data, so any table written now is immediately stale. After the
-re-export + new `run_manifest.csv`:
-- Copy the manifest into the relevant `results/weekXX/` and commit (it's gitignored
-  under `runs/`, so the REPORT.md is currently orphaned).
-- Add a row noting the `tsize 640 → 1536` re-export so the pre/post-fix CSV split is
-  traceable.
+The tsize-1536 re-export is complete, so the week READMEs were refreshed:
+- [x] `results/week03–07/README.md` updated (2026-06-21): removed the resolved
+  "S01/S08–S13 broken trim windows" claims, recorded the `tsize 640 → 1536`
+  re-export split in the run-log tables, marked the annotation/join as done for the
+  14 usable scenarios, and remapped stale STATUS TODO cross-references to the current
+  numbering.
+- [ ] **Still pending — `run_manifest.csv`:** lives on the pod (gitignored under
+  `runs/`), so the `results/weekXX/` copy + commit can only happen from the pod
+  (STATUS TODO #7). The REPORT.md provenance stays orphaned until then.
 
-## P4 — Researcher steps that block students (tracked in STATUS.md TODO #1)
+## P4 — Researcher steps that block students — ✅ done (2026-06-20)
 
-The doc cleanup is cosmetic next to this. Students cannot analyze embeddings until
-the **correct** (tsize-1536) exports exist and are published:
+All five blocking steps are complete; students can now run real `track_id`
+analysis (published as GitHub Release `exports-2026-06-20`):
 
-1. **Clean re-export @1536** — in progress (tmux `reexport` on the pod).
-2. **Poisoned re-export @1536** (eps 0.5, to match) — pending; run after clean.
-3. **Merge → `*_all-cams.csv`** — automatic in `run_baselines.py`.
-4. **Publish** the new clean+poison `*_all-cams.csv` and bump the "use these files"
-   note in `START_HERE.md` (the published CSVs predate the fix).
-5. **Re-join annotations** → `*_tracked.csv` for annotated scenarios (the existing
-   joins are now 640-stale); real metrics still gated on S07/S14/S15 annotation.
+1. [x] **Clean re-export @1536** — done (6-worker parallel, `reexport_parallel.sh`).
+2. [x] **Poisoned re-export @1536** (eps 0.5) — done (`poison_parallel.sh`; S10 skipped).
+3. [x] **Merge → `*_all-cams.csv`** — automatic in `run_baselines.py`.
+4. [x] **Publish** clean+poison `*_all-cams.csv` (gzipped) + bumped `START_HERE.md`.
+5. [x] **Re-join annotations** → `*_tracked.csv` for the 14 usable scenarios (IoU 0.2,
+   mean coverage ~0.45); the old "gated on S07/S14/S15 annotation" framing is obsolete
+   (annotations exist for all 18, joins published for 14).
 
-Caveat surfaced by the re-export: tsize-1536 CSVs are ~2× larger (S01/c01 clean went
-62 MB-merged → 107 MB single-cam). Revisit the LFS/Release budget (STATUS TODO #8)
-before publishing.
+LFS/Release budget (STATUS TODO #8) was settled in the process: distribution is via
+**gzipped Release assets, not LFS** (28 `*_all-cams.csv.gz` + 28 `*_tracked.csv.gz`,
+56 assets / ~5.7 GB).
 
 ---
 
-## Order of operations
+## Order of operations — ✅ executed (P3 manifest copy is the only remainder)
 
-1. **P4** (unblocks students — highest value; compute already running).
-2. **P1 decision** → then execute P1 rename + the SCENARIO_TRIMMING conflict.
-3. **P0/P2/P3** doc edits (a couple of hours of editing, no compute).
+1. **P4** (unblocked students) — ✅ done 2026-06-20 (Release `exports-2026-06-20`).
+2. **P1 rename + SCENARIO_TRIMMING conflict** — ✅ done (final leftovers cleared 2026-06-21).
+3. **P0/P2/P3 doc edits** — ✅ done 2026-06-21, except the pod-side `run_manifest.csv`
+   copy into `results/weekXX/` (P3; needs the pod).
+
+**Only open item:** commit `run_manifest.csv` from the pod (STATUS TODO #7). When
+that lands, this plan can be archived.
