@@ -40,16 +40,19 @@ add `track_id,annotation_track,match_iou`).
 
 | Tier | Scenarios | Use for |
 | --- | --- | --- |
-| **Real ground truth** (when join lands) | S07, S14, S15 | real precision/recall — gated on annotation |
-| **Placeholder-only** (daytime, dense) | S01, S02, **S03**, S04–S06, S08, S11, **S13**, S16, S17 | `detection_index` smoke analysis, **labeled placeholder** |
-| **Low-light caveat** (dusk, partial recovery) | S12·c03, S18 | usable but sparse — label low-light, expect lower coverage |
+| **Real ground truth** (track_id joined, published) | S01–S08, S11, S13–S17 (14) | real precision/recall via `*_all-cams_tracked.csv.gz`, `--track-column track_id` |
+| **Low-light caveat** (dusk, partial recovery) | S12·c03, S18 | usable but sparse — label low-light, expect lower coverage; not poisoned/published |
 | **Smoke-only / skip** (confirmed footage-limited) | S10 (night) | do **not** use for coverage |
 
-> **Re-export done (2026-06-20):** the under-detection was a detector input-size
-> bug (pipeline ran at YOLOX default 640); fixed at `--tsize 1536` and the full
-> clean+poison set was re-exported and published as `exports-2026-06-20`. S03 and
-> S13·c03 are daytime and recovered fully (now placeholder-usable). The 14 usable
-> scenarios above are in the Release; S10 (night) and the dusk-caveat cameras are
+> **Annotation re-join landed (2026-06-20):** the under-detection was a detector
+> input-size bug (pipeline ran at YOLOX default 640); fixed at `--tsize 1536`, the
+> full clean+poison set was re-exported, and ground-truth annotations were re-joined
+> on the 1536 exports for all **14 usable scenarios** — published as
+> `exports-2026-06-20` (28 `_tracked.csv`, mean per-camera coverage ~0.45). These 14
+> now have real `track_id`; the old "placeholder-only except S07/S14/S15" split is
+> obsolete. Coverage varies — strong: S03, S13·c03, S16, S17; weak: S01, S05·c02,
+> S11·c03. Use placeholder (`detection_index`) only as a fallback where coverage is
+> too low (see "How to analyze" below). S10 (night) and the dusk-caveat cameras are
 > not poisoned/published. Always re-check the `docs/STATUS.md` Decisions log before
 > starting.
 

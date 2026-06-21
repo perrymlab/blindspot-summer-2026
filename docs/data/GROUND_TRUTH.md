@@ -44,8 +44,10 @@ frame offsets)  local tracks)    tracks across    BoT-SORT export)   track_id)
    a human links the same vehicle across cameras, producing
    `.reid/matches.json` (auto-saved on every confirm). Budget ~1 minute per
    object; a busy window has 20–50 co-visible vehicles, so plan 20–50
-   min/scenario. Don't annotate all 18 scenarios — pick a few well-synced,
-   vehicle-rich ones (S07, S14, S15) and do them thoroughly.
+   min/scenario. The original guidance was to annotate just a few well-synced,
+   vehicle-rich scenarios; in practice all 18 were annotated and 14 (S01–S08, S11,
+   S13–S17) are joined and published (`exports-2026-06-20`). When extending to new
+   footage, still prioritize well-synced, vehicle-rich windows.
 4. **Join.** Two separate tracking runs (BoT-SORT vs. the annotation tracker)
    never share track ids, so `scripts/build_track_ids.py` aligns them by box
    IoU per (camera, frame), greedily one-to-one, then replaces the local
