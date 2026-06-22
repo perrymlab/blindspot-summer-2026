@@ -9,7 +9,6 @@ From the repo root, in the project virtual environment (Python 3.12):
 
 ```bash
 cd ~/blindspot-summer-2026
-python -m venv .venv
 source .venv/bin/activate
 ```
 You will know it worked because (.venv) appears at the front of your terminal prompt. If you skip activate you will get confusing errors.
@@ -43,9 +42,7 @@ The header is `camera,frame,detection_index,x1,y1,x2,y2,embedding`. The `*_track
 
 Fourteen scenarios have real ground truth and are safe to use for actual precision and recall: S01 through S08, S11, and S13 through S17. Two are usable with a caveat — S12·c03 and S18 are dusk shots with partial recovery, so expect sparse coverage, label anything from them as low-light, and check with me before using either for anything beyond exploration; neither is poisoned or published. S10 is night footage and is confirmed footage-limited, do not use it for coverage at all, smoke-testing only.
 
-
 ## 4. How to analyze
-
 
 For real analysis, use `*_all-cams_tracked.csv.gz`, which carries an actual global `track_id` from the ground-truth annotation join. This is what you want for real precision and recall. Run it on both clean and poisoned versions of a scenario, sweep `--z-threshold`, and write a run log to `results/week06/`. For a clean run:
 
