@@ -19,16 +19,23 @@ ROOT = Path(__file__).resolve().parents[1]
 def default_data_root() -> Path:
     """Resolve the project's default data root.
 
+<<<<<<< HEAD
+    Priority: ``BLINDSPOT_DATA_ROOT`` env var, then ``~/blindspot_data``.
+=======
     Priority: ``BLINDSPOT_DATA_ROOT`` env var, then ``/workspace/blindspot_data``
     (the GPU box's persistent volume) if it exists, then ``~/blindspot_data``.
+>>>>>>> origin/main
     Kept user-agnostic so no machine-specific paths leak into the repo.
     """
     env = os.environ.get("BLINDSPOT_DATA_ROOT")
     if env:
         return Path(env).expanduser()
+<<<<<<< HEAD
+=======
     for candidate in (Path("/workspace/blindspot_data"), Path.home() / "blindspot_data"):
         if candidate.is_dir():
             return candidate
+>>>>>>> origin/main
     return Path.home() / "blindspot_data"
 
 
@@ -63,6 +70,18 @@ def parse_args() -> argparse.Namespace:
         "first of veri_sbs_R50-ibn.pth / mot17_sbs_S50.pth found in the "
         "BoT-SORT pretrained/ dir.",
     )
+<<<<<<< HEAD
+    parser.add_argument(
+        "--cityflow-root",
+        type=Path,
+        default=default_data_root(),
+        help="Dataset root containing scenario subfolders. "
+        "Defaults to $BLINDSPOT_DATA_ROOT or ~/blindspot_data.",
+    )
+    parser.add_argument("--detector-weights", type=Path, default=None)
+    parser.add_argument("--reid-weights", type=Path, default=None)
+=======
+>>>>>>> origin/main
     parser.add_argument("--bot-sort-path", type=Path, default=ROOT / "vendor" / "BoT-SORT")
     parser.add_argument("--require-scenarios", default="S01")
     parser.add_argument("--skip-pytorch", action="store_true")
@@ -162,6 +181,27 @@ def main() -> int:
         hook_path = bot_sort_path / "fast_reid" / "fast_reid_interfece.py"
         failures += not check(hook_path.exists(), "BoT-SORT ReID hook file", str(hook_path))
 
+<<<<<<< HEAD
+    failures += not check(
+        args.cityflow_root.exists(), "data root exists", str(args.cityflow_root)
+    )
+    for scenario in [item.strip() for item in args.require_scenarios.split(",") if item.strip()]:
+        failures += not check(
+            scenario_exists(args.cityflow_root, scenario),
+            f"scenario {scenario}",
+            str(args.cityflow_root / scenario),
+        )
+
+    if args.detector_weights is None:
+        failures += not check(False, "detector weights provided", "pass --detector-weights")
+    else:
+        failures += not check(args.detector_weights.exists(), "detector weights exist", str(args.detector_weights))
+
+    if args.reid_weights is None:
+        failures += not check(False, "FastReID/OSNet weights provided", "pass --reid-weights")
+    else:
+        failures += not check(args.reid_weights.exists(), "FastReID/OSNet weights exist", str(args.reid_weights))
+=======
         # Existence is not enough: the unpatched upstream file has the same name.
         # Verify the PRIME patch actually applied by looking for symbols/flags it adds.
         demo_path = bot_sort_path / "tools" / "demo.py"
@@ -206,6 +246,7 @@ def main() -> int:
     failures += not check(
         reid_weights.exists(), "FastReID/OSNet weights exist", str(reid_weights)
     )
+>>>>>>> origin/main
 
     print()
     if failures:

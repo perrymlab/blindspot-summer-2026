@@ -2,6 +2,19 @@
 
 This document lists external data and model artifacts needed for the project. Do not commit datasets, model weights, videos, or raw tracker outputs to git.
 
+<<<<<<< HEAD
+## Intersection Footage (`blindspot_data`)
+
+The project runs on locally captured multi-camera intersection footage,
+**not** the public CityFlowV2 / AI City Challenge dataset. Sabrina is the
+source of truth for the raw videos; ask her how to obtain or sync them onto
+your machine.
+
+Once you have the raw captures, the project tooling expects them arranged
+on disk in this layout (the layout itself is borrowed from CityFlowV2 so
+that future external data could plug in without changing the code):
+
+=======
 > Rebuilding a GPU box from scratch (e.g. after a cloud instance was wiped)?
 > See `docs/setup/RECOVERY.md` for the full recovery checklist.
 
@@ -16,6 +29,7 @@ Once you have the raw captures, the project tooling expects them arranged
 on disk in this layout (the layout itself is borrowed from CityFlowV2 so
 that future external data could plug in without changing the code):
 
+>>>>>>> origin/main
 ```
 <data root>/
     S01/c001/vdo.mp4
@@ -24,6 +38,32 @@ that future external data could plug in without changing the code):
     S02/...
     ...
 ```
+<<<<<<< HEAD
+
+Default data root:
+
+- `~/blindspot_data` on macOS/Linux
+- `C:\Users\<you>\blindspot_data` on Windows
+- override with the `BLINDSPOT_DATA_ROOT` environment variable
+
+Workflow:
+
+1. Place or symlink the raw captures somewhere outside the git repository.
+2. If they did not already arrive in the layout above, normalize them with
+   `python scripts/organize_blindspot_data.py --apply` (dry-run first
+   without `--apply`).
+3. Pick a 2-5 minute trim window per scenario and record it in
+   `data/scenario_windows.csv`. See
+   `docs/data/SCENARIO_TRIMMING.md` for the full workflow.
+4. Run the readiness check:
+
+```bash
+python scripts/check_research_readiness.py --cityflow-root <data root> --detector-weights <path-to-detector-weights> --reid-weights <path-to-reid-weights>
+```
+
+The `--cityflow-root` flag name is historical and accepts any data root
+arranged in the layout above; it will be renamed in a future cleanup.
+=======
 
 Default data root:
 
@@ -61,6 +101,7 @@ python scripts/check_research_readiness.py \
 
 Run this inside the researcher `botsort` conda env (Python 3.9). The old
 `--cityflow-root` flag still works as a deprecated alias for `--data-root`.
+>>>>>>> origin/main
 
 ## BoT-SORT
 

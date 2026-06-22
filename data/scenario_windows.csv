@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+scenario,start,duration_s,anchor_notes
+S01,0,120,"red pickup co-visible across all cams ~01:35; ~15 vehicles co-visible during window"
+S02,,,
+S03,,,
+S04,,,
+S05,,,
+S06,,,
+S07,,,
+S08,,,
+S09,,,
+S10,,,
+S11,,,
+S12,,,
+S13,,,
+S14,,,
+S15,,,
+S16,,,
+S17,,,
+S18,,,
+=======
 ﻿scenario,start,duration_s,anchor_notes
 S01,35,120,red jeep co-visible across all cams ~00:54; ~30 vehicles co-visible during window
 S02,150,120,short bus co-visible across all cams ~02:38; ~50 vehicles co-visible during window
@@ -17,3 +38,4 @@ S15,7,120, grey sedan co-visible across all cams ~00:07; ~roughly 65 vehicles co
 S16,1,120, black SUV with trailer co-visible across all cams ~00:01; ~roughly 23 vehicles co-visible during window
 S17,10,120, white SUV co-visible across all cams ~00:10; ~roughly 40 vehicles co-visible during window
 S18,7,120, Red car co-visible across all cams ~00:07; ~roughly 20 vehicles co-visible during window
+>>>>>>> origin/main
