@@ -11,6 +11,11 @@ dist/
 
 runs/
 vendor/
+reports/**/videos/
+reports/**/.analysis/
 docs/setup/LOCAL_PATHS.md
+docs/LOCAL_STUDENT_HANDOFF.md
+scripts/pod.env
 
 *.log
+.devin/

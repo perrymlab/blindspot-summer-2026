@@ -16,5 +16,29 @@ P.R.I.M.E. Research Experience · blindspot-summer-2026
 
 ## Student-Found Papers
 
+<<<<<<< HEAD
 
 Last Updated [May 28, 2026]
+=======
+[5] Woo, S., Park, K., Shin, I., Kim, M., & Kweon, I. S. (2024). MTMMC: a large-scale real-world multi-modal camera tracking benchmark. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition (pp. 22335-22346).
+
+[6] Wang, X., Li, S., Liu, M., Wang, Y., & Roy-Chowdhury, A. K. (2021). Multi-expert adversarial attack detection in person re-identification using context inconsistency. In Proceedings of the IEEE/CVF international conference on computer vision (pp. 15097-15107).
+
+[7] Yan, X., Chen, X., Jiang, Y., Xia, S. T., Zhao, Y., & Zheng, F. (2020, May). Hijacking tracker: A powerful adversarial attack on visual tracking. In ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP) (pp. 2897-2901). IEEE.
+
+
+[8] Ghorbani, V., Gostar, A. K., Tari, Z., Sohrabi, N., Ghorbani, A., & Hoseinnezhad, R. Robust filtering for multi-object tracking against stealthy measurement-oriented adversarial attacks.(2025).
+
+[9] Sun, W., Jiang, X., Li, D., & Zhao, C. (2024). Diffphysba: diffusion-based physical backdoor attack against person re-identification in real-world. arXiv preprint arXiv:2405.19990.
+
+[10] Sun, W., Jiang, X., Dou, S., Li, D., Miao, D., Deng, C., & Zhao, C. (2023). Invisible backdoor attack with dynamic triggers against person re-identification. IEEE Transactions on Information Forensics and Security, 19, 307-319.
+
+[11] Bouzidi, H., Liu, H., & Faruque, M. A. A. (2025). See No Evil: Adversarial Attacks Against Linguistic-Visual Association in Referring Multi-Object Tracking Systems. arXiv preprint arXiv:2509.02028.
+
+[12] Hsu, H. M., Huang, T. W., Wang, G., Cai, J., Lei, Z., & Hwang, J. N. (2019, June). Multi-camera tracking of vehicles based on deep features re-id and trajectory-based camera link models. In CVPR workshops (pp. 416-424).
+
+[13] Liu, W., Camps, O., & Sznaier, M. (2017). Multi-camera multi-object tracking. arXiv preprint arXiv:1709.07065.
+
+
+Last Updated [June 18, 2026]
+>>>>>>> origin/main

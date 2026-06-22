@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Copy completed multicam-reid annotation files into the repo and optionally
+# upload them to the RunPod pod.
+#
+# Run this after finishing `python -m multicam_reid match ~/annotation/<scenario>`
+# for each scenario. The three output files (matches.json, per-camera tracks)
+# are small JSON and belong in version control — they ARE the ground truth.
+#
+# Usage:
+#   ./save_annotations.sh S07            # save one scenario
+#   ./save_annotations.sh S07 S14 S15    # save several
+#   ./save_annotations.sh all            # every completed annotation found
+#                                        # (any <scenario>/.reid/matches.json
+#                                        #  under ANNOTATION_DIR)
+#
+# Environment overrides (same defaults as fetch_annotation_videos.sh):
+#   ANNOTATION_DIR   where multicam-reid wrote its output  (default: ~/annotation)
+#   REPO_DIR         path to the blindspot repo on this machine
+#                    (default: auto-detected from this script's location)
+#   UPLOAD=1         also scp the files to the RunPod pod
+#   POD_HOST / POD_PORT / POD_KEY / POD_REPO
+#                    pod connection settings; set once in scripts/pod.env
+#                    (copy scripts/pod.env.example) or override per-run via env.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$SCRIPT_DIR/pod.env" ] && . "$SCRIPT_DIR/pod.env"
+
+ANNOTATION_DIR="${ANNOTATION_DIR:-$HOME/annotation}"
+REPO_DIR="${REPO_DIR:-$(dirname "$SCRIPT_DIR")}"
+
+POD_HOST="${POD_HOST:-}"
+POD_PORT="${POD_PORT:-}"
+POD_KEY="${POD_KEY:-$HOME/.ssh/id_ed25519}"
+POD_REPO="${POD_REPO:-/workspace/blindspot-summer-2026}"
+
+SCENARIOS=("$@")
+[ ${#SCENARIOS[@]} -eq 0 ] && { echo "Usage: $0 <scenario> [scenario ...] | all"; exit 1; }
+
+# `all` -> auto-discover every scenario with a completed annotation
+# (works on bash 3.2, e.g. stock macOS — no mapfile).
+if [ ${#SCENARIOS[@]} -eq 1 ] && { [ "${SCENARIOS[0]}" = "all" ] || [ "${SCENARIOS[0]}" = "--all" ]; }; then
+  SCENARIOS=()
+  while IFS= read -r s; do
+    [ -n "$s" ] && SCENARIOS+=("$s")
+  done < <(
+    for d in "$ANNOTATION_DIR"/*/.reid/matches.json; do
+      [ -f "$d" ] || continue
+      basename "$(dirname "$(dirname "$d")")"
+    done | sort
+  )
+  if [ ${#SCENARIOS[@]} -eq 0 ]; then
+    echo "No completed annotations found under $ANNOTATION_DIR (looked for */.reid/matches.json)."
+    exit 1
+  fi
+  echo "Discovered completed scenarios: ${SCENARIOS[*]}"
+fi
+
+for s in "${SCENARIOS[@]}"; do
+  reid="$ANNOTATION_DIR/$s/.reid"
+  dest="$REPO_DIR/data/annotations/$s"
+
+  if [ ! -f "$reid/matches.json" ]; then
+    echo "ERROR  $reid/matches.json not found — has annotation for $s been completed?"
+    continue
+  fi
+
+  n=$(python3 -c "import json; d=json.load(open('$reid/matches.json')); print(len(d.get('matches', d.get('objects', []))))" 2>/dev/null || echo "?")
+  echo "--- $s: $n matches found ---"
+
+  mkdir -p "$dest/tracks"
+
+  cp "$reid/matches.json" "$dest/matches.json"
+  echo "  saved matches.json"
+
+  for f in "$reid/tracks"/*.tracks.json; do
+    [ -f "$f" ] || continue
+    cp "$f" "$dest/tracks/$(basename "$f")"
+    echo "  saved tracks/$(basename "$f")"
+  done
+
+  if [ -f "$reid/sync.json" ]; then
+    cp "$reid/sync.json" "$dest/sync.json"
+    echo "  saved sync.json"
+  fi
+
+  echo "  -> $dest"
+
+  if [ "${UPLOAD:-0}" = "1" ]; then
+    if [ -z "$POD_HOST" ] || [ "$POD_HOST" = "root@CHANGE_ME" ] || [ -z "$POD_PORT" ] || [ "$POD_PORT" = "CHANGE_ME" ]; then
+      echo "ERROR: UPLOAD=1 but pod connection not configured."
+      echo "  cp scripts/pod.env.example scripts/pod.env"
+      echo "  then set POD_HOST and POD_PORT in scripts/pod.env."
+      exit 1
+    fi
+    pod_dest="$POD_REPO/data/annotations/$s"
+    echo "  uploading to pod: $pod_dest"
+    ssh -p "$POD_PORT" -i "$POD_KEY" "$POD_HOST" "mkdir -p $pod_dest/tracks"
+    scp -P "$POD_PORT" -i "$POD_KEY" \
+      "$dest/matches.json" \
+      "$POD_HOST:$pod_dest/matches.json"
+    for f in "$dest/tracks"/*.tracks.json; do
+      [ -f "$f" ] || continue
+      scp -P "$POD_PORT" -i "$POD_KEY" "$f" "$POD_HOST:$pod_dest/tracks/$(basename "$f")"
+    done
+    echo "  uploaded to pod"
+  fi
+
+done
+
+echo ""
+echo "Next steps:"
+echo "  cd $REPO_DIR"
+echo "  git add data/annotations/"
+echo "  git commit -m 'Add ground-truth annotations for ${SCENARIOS[*]}'"
+echo ""
+echo "Then run the join (on the pod or locally wherever the exports are):"
+for s in "${SCENARIOS[@]}"; do
+  echo "  python scripts/build_track_ids.py \\"
+  echo "    --export runs/botsort/$s/<export>_all-cams.csv \\"
+  echo "    --matches data/annotations/$s/matches.json \\"
+  echo "    --tracks c01=data/annotations/$s/tracks/c01.tracks.json \\"
+  echo "             c02=data/annotations/$s/tracks/c02.tracks.json \\"
+  echo "             c03=data/annotations/$s/tracks/c03.tracks.json \\"
+  echo "    --output runs/botsort/$s/<export>_tracked.csv"
+done
+echo ""
+echo "Add UPLOAD=1 to also push annotation files to the pod:"
+echo "  UPLOAD=1 $0 ${SCENARIOS[*]}"

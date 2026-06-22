@@ -51,14 +51,14 @@ If the downloaded dataset uses a different layout, document the real layout here
 ## Model Weights
 
 ```text
-Object detector weights: vendor/BoT-SORT/pretrained/bytetrack_x_mot17.pth.tar
+Object detector weights: vendor/BoT-SORT/pretrained/yolox_x.pth
 FastReID/OSNet weights: vendor/BoT-SORT/pretrained/veri_sbs_R50-ibn.pth
 Other tracker weights:
 ```
 
 ## Output Locations
 
-Large generated outputs should stay outside git unless Sabrina explicitly approves a small summary file.
+Large generated outputs should stay outside git unless Dr. Perry explicitly approves a small summary file.
 
 ```text
 Local raw run output root:

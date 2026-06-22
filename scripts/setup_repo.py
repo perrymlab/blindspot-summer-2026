@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BOTSORT_URL = "https://github.com/NirAharon/BoT-SORT.git"
 DEFAULT_BOTSORT_PATH = ROOT / "vendor" / "BoT-SORT"
 PATCH_PATH = ROOT / "patches" / "0001-Add-PRIME-ReID-poison-and-export-hooks.patch"
+# Upstream BoT-SORT moves; the PRIME patch was generated against this exact
+# commit. Pinning it keeps `git apply` deterministic instead of tracking a
+# moving origin/main that can drift and break the patch.
+DEFAULT_BOTSORT_COMMIT = "251985436d6712aaf682aaaf5f71edb4987224bd"
 
 
 def parse_args() -> argparse.Namespace:
@@ -20,7 +24,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bot-sort-url", default=DEFAULT_BOTSORT_URL)
     parser.add_argument("--bot-sort-path", default=str(DEFAULT_BOTSORT_PATH))
     parser.add_argument("--skip-bot-sort", action="store_true")
+    parser.add_argument(
+        "--skip-venv",
+        action="store_true",
+        help="Do not create the project .venv or install the project package. "
+        "Use this on a researcher GPU box, where you only need the BoT-SORT "
+        "checkout and run BoT-SORT from the separate Python 3.9 'botsort' env.",
+    )
     parser.add_argument("--force", action="store_true", help="Recreate existing venv/vendor paths.")
+    parser.add_argument(
+        "--reapply-patch",
+        action="store_true",
+        help="Re-apply the PRIME patch to an existing BoT-SORT checkout without "
+        "re-cloning. Use this after the patch changes. It reverts tracked files "
+        "to the pinned commit and re-applies the patch, preserving untracked "
+        "files such as downloaded weights in pretrained/. Discards any local "
+        "edits to tracked files in the checkout.",
+    )
     return parser.parse_args()
 
 
@@ -54,17 +74,76 @@ def setup_venv(venv_path: Path, force: bool) -> Path:
     return python
 
 
-def setup_botsort(bot_sort_url: str, bot_sort_path: Path, force: bool) -> None:
+def setup_botsort(
+    bot_sort_url: str,
+    bot_sort_path: Path,
+    force: bool,
+    reapply_patch: bool = False,
+) -> None:
     recreate_path(bot_sort_path, force)
     if bot_sort_path.exists():
+        if reapply_patch:
+            print(
+                f"Re-applying PRIME patch to existing checkout at {bot_sort_path} "
+                "(reverting tracked files to the pinned commit; untracked files "
+                "like pretrained/ are preserved)."
+            )
+            run(["git", "-C", str(bot_sort_path), "checkout", "--", "."])
+            apply_patch(bot_sort_path)
+            return
         print(f"BoT-SORT checkout already exists at {bot_sort_path}; leaving it unchanged.")
-        print("Re-run with --force to recreate it from upstream and reapply the PRIME patch.")
+        print(
+            "Re-run with --reapply-patch to reapply the PRIME patch in place "
+            "(keeps downloaded weights), or --force to recreate the whole "
+            "checkout from upstream (deletes pretrained/ weights)."
+        )
         return
 
     bot_sort_path.parent.mkdir(parents=True, exist_ok=True)
     run(["git", "clone", bot_sort_url, str(bot_sort_path)])
-    run(["git", "-C", str(bot_sort_path), "checkout", "-B", "prime-reid-poison-export", "origin/main"])
-    run(["git", "-C", str(bot_sort_path), "am", str(PATCH_PATH)])
+    run([
+        "git", "-C", str(bot_sort_path),
+        "checkout", "-B", "prime-reid-poison-export", DEFAULT_BOTSORT_COMMIT,
+    ])
+    apply_patch(bot_sort_path)
+
+
+def apply_patch(bot_sort_path: Path) -> None:
+    """Apply the PRIME patch to the BoT-SORT checkout.
+
+    Uses ``git apply`` rather than ``git am`` on purpose: ``git am`` creates a
+    commit and therefore requires ``user.name``/``user.email`` to be configured,
+    which is often not the case on a fresh GPU box. When that config is missing
+    ``git am`` fails *after* the branch is created, leaving a branch named
+    ``prime-reid-poison-export`` with no patch applied -- a silent, confusing
+    failure. ``git apply`` needs no identity and we hard-fail loudly if it does
+    not apply cleanly.
+    """
+    if not PATCH_PATH.exists():
+        raise SystemExit(f"ERROR: PRIME patch not found at {PATCH_PATH}")
+
+    print("+", "git", "-C", str(bot_sort_path), "apply", "--check", str(PATCH_PATH))
+    check = subprocess.run(
+        ["git", "-C", str(bot_sort_path), "apply", "--check", str(PATCH_PATH)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    if check.returncode != 0:
+        raise SystemExit(
+            "ERROR: the PRIME patch did not apply cleanly to the BoT-SORT checkout.\n"
+            f"  patch:    {PATCH_PATH}\n"
+            f"  checkout: {bot_sort_path}\n"
+            f"  pinned commit: {DEFAULT_BOTSORT_COMMIT}\n"
+            "This usually means upstream BoT-SORT drifted from the pinned commit, "
+            "or the checkout already has the patch applied. Re-run with --force to "
+            "recreate the checkout from the pinned commit.\n"
+            "git apply --check output:\n"
+            f"{check.stdout.strip()}"
+        )
+
+    run(["git", "-C", str(bot_sort_path), "apply", str(PATCH_PATH)])
+    print("Applied PRIME patch to BoT-SORT via git apply.")
 
 
 def main() -> None:
@@ -74,16 +153,38 @@ def main() -> None:
     if not bot_sort_path.is_absolute():
         bot_sort_path = (ROOT / bot_sort_path).resolve()
 
-    python = setup_venv(venv_path, args.force)
-    if not args.skip_bot_sort:
-        setup_botsort(args.bot_sort_url, bot_sort_path, args.force)
+    python: Path | None = None
+    if not args.skip_venv:
+        if sys.version_info < (3, 10):
+            raise SystemExit(
+                "ERROR: setup_repo.py was launched with Python "
+                f"{sys.version.split()[0]}, but the project package requires "
+                ">=3.10. The .venv is created from the interpreter that runs this "
+                "script, so it would fail to install.\n"
+                "Fix one of these:\n"
+                "  - Run with a 3.10+ interpreter, e.g.:  python3.12 scripts/setup_repo.py\n"
+                "  - On a researcher GPU box you usually only need the BoT-SORT "
+                "checkout; skip the project venv:\n"
+                "        python scripts/setup_repo.py --skip-venv\n"
+                "    (keep running BoT-SORT from the Python 3.9 'botsort' env)."
+            )
+        python = setup_venv(venv_path, args.force)
 
-    run([str(python), "scripts/smoke_test.py"])
+    if not args.skip_bot_sort:
+        setup_botsort(args.bot_sort_url, bot_sort_path, args.force, args.reapply_patch)
+
+    if python is not None:
+        run([str(python), "scripts/smoke_test.py"])
 
     print()
     print("Setup complete.")
-    print(f"Virtual environment: {venv_path}")
-    print("Run project commands through that environment's Python executable.")
+    if python is not None:
+        print(f"Virtual environment: {venv_path}")
+        print("Run project commands through that environment's Python executable.")
+    else:
+        print("Skipped project .venv (--skip-venv).")
+    if not args.skip_bot_sort:
+        print(f"BoT-SORT checkout: {bot_sort_path}")
 
 
 if __name__ == "__main__":

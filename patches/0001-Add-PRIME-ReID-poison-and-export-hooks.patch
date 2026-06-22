@@ -1,15 +1,16 @@
-From e9dafea0ad85f8bbfb6ad6e7626aa3e31a511285 Mon Sep 17 00:00:00 2001
+From a7e591afd307a1255bcbf9018e50740b022441b6 Mon Sep 17 00:00:00 2001
 From: Blindspot Summer 2026 <blindspot@example.invalid>
-Date: Mon, 27 Apr 2026 13:38:49 -0500
-Subject: [PATCH] Add PRIME ReID poison and export hooks
+Date: Tue, 9 Jun 2026 21:51:50 +0000
+Subject: [PATCH] PRIME ReID hooks + py3.9/torch2.x/headless compat
 
 ---
  fast_reid/fast_reid_interfece.py | 74 ++++++++++++++++++++++++++++++--
- tools/demo.py                    |  5 +++
+ fast_reid/fastreid/data/build.py |  2 +-
+ tools/demo.py                    |  7 ++-
  tools/mc_demo.py                 |  5 +++
  tracker/bot_sort.py              | 17 +++++++-
  tracker/mc_bot_sort.py           | 17 +++++++-
- 5 files changed, 111 insertions(+), 7 deletions(-)
+ 6 files changed, 113 insertions(+), 9 deletions(-)
 
 diff --git a/fast_reid/fast_reid_interfece.py b/fast_reid/fast_reid_interfece.py
 index 6c91ff0..aeaaca7 100644
@@ -116,11 +117,24 @@ index 6c91ff0..aeaaca7 100644
 +                    " ".join(str(float(value)) for value in feature),
 +                ])
 +
+diff --git a/fast_reid/fastreid/data/build.py b/fast_reid/fastreid/data/build.py
+index 2c29d25..b9a3fd3 100644
+--- a/fast_reid/fastreid/data/build.py
++++ b/fast_reid/fastreid/data/build.py
+@@ -8,7 +8,7 @@ import logging
+ import os
+ 
+ import torch
+-from torch._six import string_classes
++string_classes = str
+ from collections import Mapping
+ 
+ from fast_reid.fastreid.config import configurable
 diff --git a/tools/demo.py b/tools/demo.py
-index b2c0bd2..aaf818a 100644
+index b2c0bd2..4a6998d 100644
 --- a/tools/demo.py
 +++ b/tools/demo.py
-@@ -59,6 +59,11 @@ def make_parser():
+@@ -59,6 +59,12 @@ def make_parser():
      parser.add_argument("--fast-reid-weights", dest="fast_reid_weights", default=r"pretrained/mot17_sbs_S50.pth", type=str,help="reid config file path")
      parser.add_argument('--proximity_thresh', type=float, default=0.5, help='threshold for rejecting low overlap reid matches')
      parser.add_argument('--appearance_thresh', type=float, default=0.25, help='threshold for rejecting low appearance similarity reid matches')
@@ -129,11 +143,43 @@ index b2c0bd2..aaf818a 100644
 +    parser.add_argument("--prime-poison-epsilon", type=float, default=0.0, help="L2 magnitude of PRIME ReID embedding perturbation")
 +    parser.add_argument("--prime-poison-seed", type=int, default=7, help="Random seed for PRIME ReID embedding perturbation")
 +    parser.add_argument("--prime-export-embeddings", default=None, help="Optional CSV path for exported ReID embeddings")
++    parser.add_argument("--prime-classes", default=None, help="Comma-separated detector class ids to keep (COCO vehicles: 2,3,5,7). Default keeps all classes.")
      return parser
  
  
+@@ -249,6 +255,11 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
+                 detections = outputs[:, :7]
+                 detections[:, :4] /= scale
+ 
++                if getattr(args, "prime_classes", None):
++                    keep_ids = {int(c) for c in str(args.prime_classes).split(",") if c.strip()}
++                    keep = [i for i in range(len(detections)) if int(detections[i, 6]) in keep_ids]
++                    detections = detections[keep]
++
+                 # Run tracker
+                 online_targets = tracker.update(detections, img_info["raw_img"])
+ 
+@@ -275,7 +286,7 @@ def imageflow_demo(predictor, vis_folder, current_time, args):
+                 online_im = img_info['raw_img']
+             if args.save_result:
+                 vid_writer.write(online_im)
+-            ch = cv2.waitKey(1)
++            ch = -1
+             if ch == 27 or ch == ord("q") or ch == ord("Q"):
+                 break
+         else:
+@@ -296,8 +307,8 @@ def main(exp, args):
+     output_dir = osp.join(exp.output_dir, args.experiment_name)
+     os.makedirs(output_dir, exist_ok=True)
+ 
++    vis_folder = osp.join(output_dir, "track_vis")
+     if args.save_result:
+-        vis_folder = osp.join(output_dir, "track_vis")
+         os.makedirs(vis_folder, exist_ok=True)
+ 
+     if args.trt:
 diff --git a/tools/mc_demo.py b/tools/mc_demo.py
-index 2c82097..c49979c 100644
+index 2c82097..a0efc1c 100644
 --- a/tools/mc_demo.py
 +++ b/tools/mc_demo.py
 @@ -59,6 +59,11 @@ def make_parser():
@@ -148,6 +194,16 @@ index 2c82097..c49979c 100644
      return parser
  
  
+@@ -298,8 +303,8 @@ def main(exp, args):
+     output_dir = osp.join(exp.output_dir, args.experiment_name)
+     os.makedirs(output_dir, exist_ok=True)
+ 
++    vis_folder = osp.join(output_dir, "track_vis")
+     if args.save_result:
+-        vis_folder = osp.join(output_dir, "track_vis")
+         os.makedirs(vis_folder, exist_ok=True)
+ 
+     if args.trt:
 diff --git a/tracker/bot_sort.py b/tracker/bot_sort.py
 index 6b1bb48..9c33795 100644
 --- a/tracker/bot_sort.py
@@ -218,5 +274,3 @@ index 404cfcb..a6d36a5 100644
  
          if len(dets) > 0:
              '''Detections'''
--- 
-2.40.0.windows.1

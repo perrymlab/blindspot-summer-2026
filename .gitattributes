@@ -1,0 +1,7 @@
+# Versioned run exports are stored under data/exports/ and tracked with Git LFS.
+# Scope is deliberately narrow: small tracked CSVs elsewhere (e.g.
+# data/scenario_windows.csv) must NOT be converted to LFS.
+data/exports/**/*.csv     filter=lfs diff=lfs merge=lfs -text
+data/exports/**/*.csv.gz  filter=lfs diff=lfs merge=lfs -text
+data/exports/**/*.npy     filter=lfs diff=lfs merge=lfs -text
+data/exports/**/*.npz     filter=lfs diff=lfs merge=lfs -text

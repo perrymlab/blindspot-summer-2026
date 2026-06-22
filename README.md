@@ -1,6 +1,10 @@
 # Blindspot Summer 2026
 
+<<<<<<< HEAD
 Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Sabrina Perry is the faculty researcher; Christine Page and Floyd Dodwell are the students.
+=======
+Working repository for the PRIME summer project on detecting poisoned frames in multi-camera tracking. Dr. Sabrina Perry is the faculty researcher; Christine Page and Floyd Dodwell are the students.
+>>>>>>> origin/main
 
 ## Repository Layout
 
@@ -26,11 +30,21 @@ Implemented:
 - Local BoT-SORT clone in `vendor/BoT-SORT`.
 - Patched BoT-SORT branch `prime-reid-poison-export` with ReID poisoning/export flags.
 - Export analyzer for BoT-SORT embedding CSVs.
+- Scenario trimming workflow (`scripts/trim_scenarios.py` + committed window manifest).
+- Batch baseline runner (`scripts/run_baselines.py`): clean + poisoned passes per scenario, merged per-scenario `*_all-cams.csv`, provenance manifest.
+- Real-data runs on trimmed local footage: S01 clean + poisoned (eps 0.5) completed 2026-06-12.
+- Shareable progress reports (`scripts/make_progress_report.py`): score tables, annotated stills/videos, self-contained HTML.
+- LFS publishing of exports/trimmed videos (`scripts/publish_run_outputs.sh`) and GPU-pod recovery (`scripts/pod_bootstrap.sh`).
+
+- Ground-truth global-ID join (`scripts/build_track_ids.py`): real cross-camera `track_id` joined onto exports for 14 scenarios (mean coverage ~0.45), so identity-level metrics are no longer placeholder-only.
 
 Not yet implemented:
 
+<<<<<<< HEAD
 - Real-data ingestion of locally captured intersection footage end to end.
 - Merge from BoT-SORT detection-level embedding exports to tracker/global IDs.
+=======
+>>>>>>> origin/main
 - Tracking metrics such as IDF1, HOTA, MOTA, and IDS from real tracker output.
 - Publication-quality plots.
 
@@ -74,7 +88,11 @@ Use `prime_mtmc.data.EmbeddingTable.from_csv` to load exported embeddings.
 
 ## Next Engineering Step
 
+<<<<<<< HEAD
 Set up BoT-SORT runtime dependencies and weights, organize the locally captured intersection footage into `~/blindspot_data/S0N/c00K/vdo.mp4` and trim it per `docs/data/SCENARIO_TRIMMING.md`, then export clean and poisoned per-camera embeddings with the patched BoT-SORT flags described in `docs/botsort-integration/BOTSORT_INTEGRATION.md`.
+=======
+Clean + poisoned (eps 0.5) runs are complete for the usable scenarios at the corrected detector input size (`--tsize 1536`, re-exported 2026-06-20; trim windows verified valid 2026-06-19). Next: run the full epsilon sweep (`python scripts/run_baselines.py --all --epsilons 0.1,0.5,1.0 --apply`), the single-camera poison sweep, and IDF1/HOTA/MOTA/IDS metric extraction. Current progress and open TODOs: `docs/STATUS.md`.
+>>>>>>> origin/main
 
 ## BoT-SORT Clone
 

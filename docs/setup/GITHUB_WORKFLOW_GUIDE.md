@@ -4,7 +4,7 @@ This is the short daily workflow for each contributor.
 
 > **Windows users:** the commands below are written for macOS/Linux. On Windows, replace `.venv/bin/python` with `.venv\Scripts\python.exe`. See `docs/setup/PYTHON_ENVIRONMENT.md` for the full command convention.
 
-## Sabrina / Researcher
+## Dr. Perry / Researcher
 
 Owns `main`, permissions, review, and final research record.
 
@@ -104,7 +104,7 @@ GitHub will run the `Python tests` check automatically. If it fails, click the f
 - Keep commits focused.
 - Put exact experiment commands in run logs.
 - Do not commit datasets, model weights, videos, raw tracker outputs, `.venv`, `runs/`, or `vendor/`.
-- Ask Sabrina before changing shared code in `src/` or `scripts/`.
+- Ask Dr. Perry before changing shared code in `src/` or `scripts/`.
 - Every pull request should say what changed, why it changed, and how it was checked.
 
 ## Branch Names
@@ -133,7 +133,7 @@ Open questions:
 
 ## If Something Goes Wrong
 
-Do not force-push or reset unless Sabrina tells you to.
+Do not force-push or reset unless Dr. Perry tells you to.
 
 Instead, save the exact error and ask for help with:
 

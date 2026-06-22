@@ -1,4 +1,9 @@
-# BoT-SORT ReID Poisoning Hook
+# BoT-SORT ReID Poisoning
+
+> **Running the tracker?** See the step-by-step
+> [BoT-SORT GPU Runbook](BOTSORT_GPU_RUNBOOK.md) for the full faculty researcher
+> workflow (conda Python 3.9 env, dependency install, weights, and the exact
+> demo commands).
 
 This project treats embedding-space poisoning as an inference-time intervention on ReID feature vectors. In the upstream BoT-SORT repository, the expected hook point is:
 
@@ -34,9 +39,9 @@ The local checkout has been patched and committed on branch:
 
 Patch commit:
 
-`e9dafea0ad85f8bbfb6ad6e7626aa3e31a511285`
+`a7e591afd307a1255bcbf9018e50740b022441b6`
 
-That branch adds PRIME flags in `tools/demo.py` and `tools/mc_demo.py`, plus embedding poisoning/export support in `fast_reid/fast_reid_interfece.py`.
+That branch adds PRIME flags in `tools/demo.py` and `tools/mc_demo.py`, plus embedding poisoning/export support in `fast_reid/fast_reid_interfece.py`. It also carries the compatibility fixes required to run the 2021-era FastReID code on a modern stack: `fast_reid/fastreid/data/build.py` replaces the removed `torch._six.string_classes` import with `string_classes = str` (PyTorch 2.x), and `tools/demo.py` replaces the interactive `cv2.waitKey(1)` call with `ch = -1` so the demo runs under headless OpenCV on a GPU server with no display. The PRIME code paths require **Python 3.9** (FastReID imports `collections.Mapping`, removed in Python 3.10).
 
 In a fresh fork/clone of this repository, run `python scripts/setup_repo.py` to recreate the local BoT-SORT checkout and apply the tracked patch from `patches/`.
 
@@ -47,20 +52,15 @@ In a fresh fork/clone of this repository, run `python scripts/setup_repo.py` to 
 - `--prime-poison-epsilon 0.5`
 - `--prime-poison-seed 7`
 - `--prime-export-embeddings runs/botsort/c01_embeddings.csv`
+- `--prime-classes 2,3,5,7` (restrict a COCO detector to vehicle classes: car/motorcycle/bus/truck)
 
-Example shape for a per-camera clean run:
+For the exact, verified-working clean and poisoned commands (with the required
+`-f`/`--ckpt` flags and the VeRi vehicle ReID config), see
+[BOTSORT_GPU_RUNBOOK.md](BOTSORT_GPU_RUNBOOK.md#6-run-the-tracker-and-export-embeddings).
+The `--prime-*` flags layer on top of that base command:
 
-```bash
-cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/clean_c01.csv
-```
-
-Example shape for a poisoned run:
-
-```bash
-cd vendor/BoT-SORT
-python tools/demo.py video --path <path-to-S01-c001-video> --with-reid --prime-camera-id c01 --prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5 --prime-export-embeddings ../../runs/botsort/poisoned_c01.csv
-```
+- Clean export: `--prime-camera-id c01 --prime-export-embeddings ../../runs/botsort/S01/S01_c01_clean.csv`
+- Poisoned export: add `--prime-poison-cameras c01,c02 --prime-poison-epsilon 0.5`
 
 ## Required Run Log Fields
 
@@ -87,5 +87,11 @@ The detector in this repository reads that CSV with `EmbeddingTable.from_csv`.
 The direct BoT-SORT export writes raw detection-level embeddings. For camera-level detection with this repository, merge those rows with tracker-assigned global IDs or ground-truth IDs, then run:
 
 ```bash
-python scripts/analyze_embedding_export.py --input runs/botsort/merged_embeddings.csv --track-column track_id --poisoned-cameras c01,c02
+python scripts/analyze_embedding_export.py --input runs/botsort/S01/S01_poison_c01-c02_eps0.5_seed7_all-cams.csv --track-column track_id --poisoned-cameras c01,c02
+```
+
+`scripts/run_baselines.py` produces those per-scenario `*_all-cams.csv` merges
+automatically (see `BOTSORT_GPU_RUNBOOK.md`, "Batch mode").
+
+```bash
 ```

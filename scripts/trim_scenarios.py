@@ -42,6 +42,12 @@ def default_data_root() -> Path:
     env = os.environ.get("BLINDSPOT_DATA_ROOT")
     if env:
         return Path(env).expanduser()
+<<<<<<< HEAD
+=======
+    for candidate in (Path("/workspace/blindspot_data"), Path.home() / "blindspot_data"):
+        if candidate.is_dir():
+            return candidate
+>>>>>>> origin/main
     return Path.home() / "blindspot_data"
 
 
@@ -79,7 +85,11 @@ def load_manifest(path: Path, only: set[str] | None) -> list[Window]:
     if not path.exists():
         raise FileNotFoundError(f"manifest not found: {path}")
     rows: list[Window] = []
+<<<<<<< HEAD
     with path.open(newline="", encoding="utf-8") as fh:
+=======
+    with path.open(newline="", encoding="utf-8-sig") as fh:
+>>>>>>> origin/main
         reader = csv.DictReader(fh)
         for raw in reader:
             scenario = (raw.get("scenario") or "").strip()
