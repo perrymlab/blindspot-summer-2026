@@ -17,5 +17,13 @@ docs/setup/LOCAL_PATHS.md
 docs/LOCAL_STUDENT_HANDOFF.md
 scripts/pod.env
 
+# Researcher-internal — lives in the private repo (blindspot-research-internal),
+# never commit to this shared/student repo. Mirrored under internal/.
+internal/
+results/PROGRESS_SUMMARY_*.md
+results/**/FEEDBACK_*.md
+results/week*/README.md
+docs/weekly-briefs/RESEARCHER_ALL_WEEKS_TASKS.md
+
 *.log
 .devin/
