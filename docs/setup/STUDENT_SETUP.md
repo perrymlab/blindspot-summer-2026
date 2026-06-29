@@ -103,11 +103,7 @@ Your OS credential manager (Windows Credential Manager, macOS Keychain,
 Linux keyring) saves the token after the first successful push, so you will
 not be prompted again on this machine for this repo.
 
-<<<<<<< HEAD
-If credentials misbehave, ask Sabrina before retrying. **Never** paste the
-=======
 If credentials misbehave, ask Dr. Perry before retrying. **Never** paste the
->>>>>>> origin/main
 token into commits, chat messages, or files in this repo.
 
 ---

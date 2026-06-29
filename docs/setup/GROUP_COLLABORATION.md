@@ -149,11 +149,7 @@ Weeks 8-10:
 
 Recommended ownership:
 
-<<<<<<< HEAD
-- Sabrina owns `docs/`, final decisions in `experiments/`, and accepted summaries in `results/`.
-=======
 - Dr. Perry owns `docs/`, final decisions in `experiments/`, and accepted summaries in `results/`.
->>>>>>> origin/main
 - Christine owns `papers/christina/` and her assigned experiment notes.
 - Floyd owns `papers/floyd/` and his assigned experiment notes.
 - Both students may contribute to `papers/shared-bibliography/`.

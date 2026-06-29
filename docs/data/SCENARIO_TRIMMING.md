@@ -59,12 +59,8 @@ root. Run it without `--apply` first to dry-run the plan.
 ### 3. Data root resolved
 
 By default everything resolves to `~/blindspot_data` (`C:\Users\<you>\blindspot_data`
-<<<<<<< HEAD
-on Windows). To use a different location, set the `BLINDSPOT_DATA_ROOT`
-=======
 on Windows). On a GPU box, `/workspace/blindspot_data` (the persistent volume)
 is picked up automatically when it exists. To use a different location, set the `BLINDSPOT_DATA_ROOT`
->>>>>>> origin/main
 environment variable, or pass `--data-root` to the script:
 
 ```cmd
@@ -103,15 +99,11 @@ safer for low-traffic or twilight scenarios.
   `~/blindspot_data/` and are reproducible by re-running the trim script
   against the committed manifest.
 
-<<<<<<< HEAD
-=======
 > **TODO (2026-06-12):** several committed manifest rows look like start/END
 > pairs rather than start/DURATION: S01 (20s), S08 (5s), S09-S13 (2-3s) are far
 > below the 120-300s target, and the per-student sheets suggest end-times were
 > entered in `duration_s`. Reconcile with Christine's sheet before trimming or
 > running those scenarios.
-
->>>>>>> origin/main
 ## Filling in the manifest
 
 `data/scenario_windows.csv` has one row per scenario:
@@ -132,11 +124,7 @@ Column rules:
 - **`duration_s`**: window length in seconds. Aim for 120 to 300.
 - **`anchor_notes`**: free text. State (a) at least one specific vehicle that
   is visible in all three cameras within the window, and (b) a rough count of
-<<<<<<< HEAD
-  total co-visible vehicles during the window. This is what Sabrina reads
-=======
   total co-visible vehicles during the window. This is what Dr. Perry reads
->>>>>>> origin/main
   during PR review.
 
 Rows with empty `start` or `duration_s` are skipped by the tooling, so the
@@ -207,15 +195,7 @@ glance that the anchor vehicle named in `anchor_notes` really is present.
 2. Fill in one or more rows of `data/scenario_windows.csv`.
 3. Run the quicklook script and attach a couple of the generated PNGs to the
    PR description.
-<<<<<<< HEAD
-<<<<<<< HEAD
-4. Request review from Sabrina. She approves the window choices by reading
-=======
 4. Request review from Dr. Perry. She approves the window choices by reading
->>>>>>> origin/main
-=======
-4. Request review from Dr. Perry. She approves the window choices by reading
->>>>>>> origin/main
    the manifest diff and the composite images, without needing the videos.
 5. After merge, anyone with the raw footage in `~/blindspot_data/` can
    reproduce the trims with `python scripts/trim_scenarios.py --apply`.
