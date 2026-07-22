@@ -5,7 +5,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .data import EmbeddingTable, cosine_distance
+from .data import EmbeddingTable
+from .reid import positional_pair_distances
 
 
 @dataclass(frozen=True)
@@ -25,42 +26,11 @@ class DetectorConfig:
 def camera_consistency_scores(table: EmbeddingTable, config: DetectorConfig) -> pd.DataFrame:
     """Score cameras by cross-camera same-track cosine-distance distribution shift."""
 
-    pair_rows: list[dict[str, object]] = []
-    meta = table.meta.reset_index(drop=True)
-
-    for track_id, group in meta.groupby("track_id", sort=False):
-        indices_by_camera = {
-            str(camera): camera_group.index.to_numpy()
-            for camera, camera_group in group.groupby("camera", sort=False)
-        }
-        cameras = sorted(indices_by_camera)
-        for left_pos, left_camera in enumerate(cameras):
-            for right_camera in cameras[left_pos + 1 :]:
-                left_indices = indices_by_camera[left_camera]
-                right_indices = indices_by_camera[right_camera]
-                count = min(len(left_indices), len(right_indices))
-                if count == 0:
-                    continue
-                distances = cosine_distance(
-                    table.embeddings[left_indices[:count]],
-                    table.embeddings[right_indices[:count]],
-                )
-                for distance in distances:
-                    pair_rows.append(
-                        {
-                            "track_id": track_id,
-                            "camera_a": left_camera,
-                            "camera_b": right_camera,
-                            "distance": float(distance),
-                        }
-                    )
-
-    if not pair_rows:
+    pairs = positional_pair_distances(table.meta, table.embeddings)
+    if pairs.empty:
         return pd.DataFrame(
             columns=["camera", "mean_distance", "variance", "pair_count", "z_score", "flagged"]
         )
-
-    pairs = pd.DataFrame(pair_rows)
     camera_rows = []
     for camera in sorted(set(pairs["camera_a"]).union(set(pairs["camera_b"]))):
         distances = pairs.loc[
